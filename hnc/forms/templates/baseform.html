@@ -1,0 +1,13 @@
+<form class="${form.classes}" method="post" id="${form.id}"
+    ${self.prelims(form)}
+    %for field in form.fields:
+        ${field.render(request)|n}
+    %endfor
+</form>
+
+
+<%def name="prelims(form)">
+    <input type="hidden" name="type" value="${form.id}"/>
+    <input type="hidden" name="token" value="${request.session.get_csrf_token()}"/>
+    <input type="hidden" name="furl" value="${request.furl}"/>
+</%def>

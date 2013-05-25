@@ -1,0 +1,15 @@
+<%inherit file="basefield.html"/>
+<%namespace name="lib" file="lib.html"/>
+
+<%block name="controls">
+    %for field in widget.fields:
+        ${field.renderControl(prefix, request, value, error)|n}
+    %endfor
+</%block>
+
+
+<%def name="renderInline(widget, error)">
+    %for field in widget.fields:
+        ${lib.renderInline(field, error.get(field.name))}
+    %endfor
+</%def>

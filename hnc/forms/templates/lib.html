@@ -1,0 +1,16 @@
+<%def name="renderInline(widget, error)">
+    %if error:
+        <span class="help-inline">
+        ${error}
+        </span>
+    %endif
+    %if widget.html_help:
+        <span class="help-block">
+        %if callable(widget.html_help):
+            ${widget.html_help(request)}
+        %else:
+            ${widget.html_help}
+        %endif
+        </span>
+    %endif
+</%def>

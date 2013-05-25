@@ -1,0 +1,12 @@
+<%inherit file="basefield.html"/>
+<%namespace name="lib" file="lib.html"/>
+
+<%block name="controls">
+    %for option in widget.getOptions(request):
+    <% val = option.getKey(request) %>
+    <label class="${widget.getClasses()} ${val}" data-value="${val}">
+        <input type="radio" name="${widget.getName(prefix)}" ${widget.attrs.getInputAttrs(request)|n} value="${val}" ${'checked' if widget.isSelected(option, value, request) else ''} class="${'required' if widget.attrs.required else ''}"/>
+        ${option.getLabel(request)}
+    </label>
+    %endfor
+</%block>

@@ -1,0 +1,14 @@
+<%inherit file="basefield.html"/>
+<%namespace name="lib" file="lib.html"/>
+
+<%block name="controls">
+    <div class="typeahead-container"
+         data-api-url="${widget.api_url}" data-api-result="${widget.api_result}" data-api-type="${widget.name}"
+        ${'data-api-dependency="{}"'.format(widget.dependency) if widget.dependency else ''|n}
+    >
+        <input type="hidden" class='typehead-token' name="${widget.getName(prefix)}.token" value="${value.get('token', '')}"/>
+        <div class="search-field">
+            <input type="text" class="query ${widget.getClasses()}" name="${widget.getName(prefix)}.name" value="${value.get('name', '')}" autocomplete="off" ${widget.attrs.getInputAttrs(request)|n}/>
+        </div>
+    </div>
+</%block>

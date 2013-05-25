@@ -1,0 +1,18 @@
+<%namespace name="lib" file="lib.html"/>
+<div class="control-group row ${widget.group_classes} ${widget.attrs.getClasses()} ${widget.attrs.getGroupClasses()} ${'error' if error else ''}" ${widget.attrs.getGroupAttrs()|n}>
+    %if widget.hasLabel():
+        <label class="control-label ${widget.label_classes} col col-lg-4">
+            ${widget.getLabel(request)}
+        </label>
+    %endif
+    <div class="controls ${widget.control_classes} col col-lg-8">
+        <%block name="controls">
+            <input type="${widget.type}" class="${widget.getClasses()}" name="${widget.getName(prefix)}" id="${widget.getName(prefix)}" value="${widget.valueToForm(value)}" ${widget.getInputAttrs(request)|n}/>
+        </%block>
+        ${self.renderInline(widget, error)}
+    </div>
+</div>
+
+<%def name="renderInline(widget, error)">
+    ${lib.renderInline(widget, error)}
+</%def>

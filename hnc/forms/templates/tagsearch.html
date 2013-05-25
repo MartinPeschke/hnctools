@@ -1,0 +1,22 @@
+<%inherit file="basefield.html"/>
+<%namespace name="lib" file="lib.html"/>
+
+<%block name="controls">
+    <div class="tagsearch-container" data-api-url="${widget.api_url}" data-api="${widget.api_allow_new}" data-api-result="${widget.api_result}" data-prefix="${widget.getName(prefix)}" ${widget.getQueryExtra()|n}>
+        <script type="template/text" class="tag-template">
+            ${self.tagTempl(widget, '{{ pos }}', '{{ model.getSearchLabel() }}', '{{ model.id }}')}
+        </script>
+        <div class="current-tags">
+            %for i, tag in enumerate(value):
+                ${self.tagTempl(widget, str(i), tag['name'], tag['name'])}
+            %endfor
+        </div>
+        <div class="search-field">
+            <input type="text" class="query ${widget.getClasses()}" autocomplete="off" ${widget.attrs.getInputAttrs(request)|n}/>
+        </div>
+    </div>
+</%block>
+
+<%def name="tagTempl(widget, pos, label, id)">
+    <span class="tag">${label|n}<span class="close">×</span><input type="hidden" name="${widget.getName(prefix)}-${pos|n}.name" value="${id|n}"/></span>
+</%def>
