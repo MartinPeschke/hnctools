@@ -1,5 +1,5 @@
 <%namespace name="lib" file="lib.html"/>
-<div class="control-group row ${widget.group_classes} ${widget.attrs.getClasses()} ${widget.attrs.getGroupClasses()} ${'error' if error else ''}" ${widget.attrs.getGroupAttrs()|n}>
+<div class="control-group row ${widget.group_classes} ${widget.attrs.getClasses()} ${widget.attrs.getGroupClasses()} ${'has-error' if error else ''}" ${widget.attrs.getGroupAttrs()|n}>
     %if widget.hasLabel():
         <label class="control-label ${widget.label_classes} col col-lg-4">
             ${widget.getLabel(request)}

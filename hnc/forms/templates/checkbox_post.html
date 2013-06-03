@@ -1,6 +1,6 @@
 <%namespace name="lib" file="lib.html"/>
 
-<div class="control-group row ${widget.group_classes} ${widget.attrs.getClasses()} ${widget.attrs.getGroupClasses()} ${'error' if error else ''}" ${widget.attrs.getGroupAttrs()|n}>
+<div class="control-group row ${widget.group_classes} ${widget.attrs.getClasses()} ${widget.attrs.getGroupClasses()} ${'has-error' if error else ''}" ${widget.attrs.getGroupAttrs()|n}>
     <div class="controls col col-lg-8 col-offset-4 ${widget.control_classes}">
         <label class="${widget.label_classes}">
             <input type="checkbox" name="${widget.getName(prefix)}" class="${widget.getClasses()}" value="${widget.value}" ${'checked' if value else ''} ${widget.attrs.getInputAttrs(request)|n}/>
