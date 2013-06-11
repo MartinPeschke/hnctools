@@ -45,6 +45,14 @@ def ajax_url(request, route_name, secure = False, escaped = {}, *args, **kwargs)
         url = url.replace(urllib.quote(token), escaped[key])
     return url
 
+def jsonAwareRedirectView(exc, request):
+    if request.is_json:
+        response = Response(simplejson.dumps({'redirect': exc.location}), 200, content_type = 'application/json')
+    else:
+        response = Response("Resource Found!", 302, headerlist = [('location', exc.location)])
+    return response
+
+    
 
 def extend_request(config):
     def furl(request):
@@ -69,10 +77,4 @@ def extend_request(config):
     config.add_request_method(fwd_url)
     config.add_request_method(ajax_url)
 
-    def redirectJson(exc, request):
-        if request.is_json:
-            response = Response(simplejson.dumps({'redirect': exc.location}), 200, content_type = 'application/json')
-        else:
-            response = Response("Resource Found!", 302, headerlist = [('location', exc.location)])
-        return response
-    config.add_view(redirectJson, context=JsonAwareRedirect)
+    config.add_view(jsonAwareRedirectView, context=JsonAwareRedirect)

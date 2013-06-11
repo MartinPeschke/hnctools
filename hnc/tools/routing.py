@@ -52,13 +52,36 @@ class FunctionRoute(BaseRoute):
         self.renderer = renderer
         self.route_attrs = route_attrs
 
-
     def setup(self, app, config):
         route_name =self.getRouteName(app.name)
         config.add_route(route_name, self.path_exp, factory = self.factory, **self.route_attrs)
         self.addView(config, route_name)
+
+    def addView(self, config, route_name):
+        if(self.view):config.add_view(self.view, route_name = route_name, renderer = self.renderer)
+
+    def adjust_renderers(self, path):
+        if self.renderer:
+            if self.renderer.endswith(".html"):
+                self.renderer = "{}{}".format(path, self.renderer)
+            elif self.renderer.endswith(".xml"):
+                self.renderer = "{}{}".format(path, self.renderer)
+
+
+class OAuthLoginRoute(FunctionRoute):
+    def __init__(self, name, path_exp, factory, view, renderer, route_attrs={}):
+        super(OAuthLoginRoute, self).__init__(name, path_exp, factory, view, renderer, route_attrs)
+
+    def setup(self, app, config):
+        route_name =self.getRouteName(app.name)
+        config.add_route(route_name, self.path_exp, factory = self.factory, **self.route_attrs)
+        config.add_route('{}_login'.format(route_name), '{}/*traverse'.format(self.path_exp), factory = self.factory, use_global_views = True)
+        self.addView(config, route_name)
+
     def addView(self, config, route_name):
         config.add_view(self.view, route_name = route_name, renderer = self.renderer)
+
+
 
 class ClassRoute(FunctionRoute):
     def __init__(self, name, path_exp, factory, view, renderer = None, view_attrs = []):
@@ -70,11 +93,15 @@ class ClassRoute(FunctionRoute):
             renderer = attrs.pop("renderer", self.renderer)
             config.add_view(view = self.view, route_name = route_name, renderer = renderer, **attrs)
 
+class OAuthClassRoute(ClassRoute):
+    def setup(self, app, config):
+        route_name =self.getRouteName(app.name)
+        config.add_route(route_name, self.path_exp, factory = self.factory, **self.route_attrs)
+        config.add_route('{}_login'.format(route_name), '{}/*traverse'.format(self.path_exp), factory = self.factory, use_global_views = True)
+        self.addView(config, route_name)
+
+
 def route_factory(projectlabel, route_list, app, config, template_path_prefix):
     for route in route_list:
-        if route.renderer:
-            if route.renderer.endswith(".html"):
-                route.renderer = "{}:{}/templates/{}".format(projectlabel, template_path_prefix, route.renderer)
-            elif route.renderer.endswith(".xml"):
-                route.renderer = "{}:{}/templates/{}".format(projectlabel, template_path_prefix, route.renderer)
+        route.adjust_renderers("{}:{}/templates/".format(projectlabel, template_path_prefix))
         route.setup(app, config)

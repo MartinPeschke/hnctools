@@ -5,7 +5,7 @@ from formencode.validators import OneOf
 from hnc.forms.validators import TypeAheadValidator, DateValidator
 from pyramid.renderers import render
 import simplejson
-
+from collections import OrderedDict
 
 class NullConfigModel(object):
     name = None
@@ -88,7 +88,15 @@ class BaseSchema(formencode.Schema):
     allow_extra_fields=True
 
 
+
+class BaseFormMeta(type):
+    def __new__(cls, name, bases, dct):
+        if 'fields' in dct:
+            dct['fieldMap'] = OrderedDict([(field.name, field) for field in dct['fields']])
+        return super(BaseFormMeta, cls).__new__(cls, name, bases, dct)
+
 class BaseForm(object):
+    __metaclass__ = BaseFormMeta
     id = 'formdata'
     classes = "form-horizontal form-validated"
     fields = []
@@ -96,6 +104,10 @@ class BaseForm(object):
     pre_validators = []
     chained_validators = []
     template = 'hnc.forms:templates/baseform.html'
+
+
+
+
     def render(self, request):
         return render(self.template, {'form': self}, request)
 
@@ -403,13 +415,23 @@ class ConfigTypeAheadField(StringField):
 
 class TagSearchField(StringField):
     template = 'hnc.forms:templates/tagsearch.html'
-    def __init__(self, name, label, api_url, api_result, api_allow_new = True, query_extra={}, attrs = NONE, classes = 'tagsearch', group_classes = '', label_classes = '', input_classes = ''):
-        super(TagSearchField, self).__init__(name, label, attrs, classes, group_classes = group_classes, label_classes = label_classes, input_classes=input_classes)
+    tag_class = "label label-info spaced text-small"
+    tag_container_class = "current-tags"
+    api_type = None
+    classes = 'tagsearch'
+    query_extra={}
+    api_allow_new = True
+    attrs = NONE
+    group_classes = ''
+    label_classes = ''
+    input_classes = ''
+
+    def __init__(self, name, label, api_url, api_result, **kwargs):
+        super(TagSearchField, self).__init__(name, label, **kwargs)
         self.api_result = api_result
-        self.api_allow_new = 'true' if api_allow_new else 'false'
-        self.api_type = None
+        self.api_allow_new = kwargs.get('api_allow_new', 'false')
         self.api_url = api_url
-        if query_extra: self.query_extra = simplejson.dumps(query_extra).replace('"', '&quot;')
+        if kwargs.get('query_extra'): self.query_extra = simplejson.dumps(kwargs.get('query_extra')).replace('"', '&quot;')
         else: self.query_extra = None
 
     def getValidator(self, request):
@@ -437,6 +459,23 @@ class TokenTypeAheadField(StringField):
     def getValues(self, name, request, values, errors, view):
         return {'value': values.get(name, {}), 'error':errors.get(name, {})}
 
+
+
+
+class FileUploadField(Field):
+    template = 'hnc.forms:templates/fileupload.html'
+    if_empty = {}
+    def __init__(self, name, classes = 'form-embedded-wrapper'):
+        self.name = name
+        self.classes = classes
+    def getClasses(self):
+        return self.classes
+    def getValidator(self, request):
+        validators = {}
+        return {self.name : formencode.ForEach(BaseSchema(file = formencode.validators.String(), name=formencode.validators.String()), not_empty = self.attrs.required)}
+    TYPES = {'IMAGE': "jpg,gif,png", 'OTHER': "*.*"}
+    def getFileTypes(self, dt):
+        return self.TYPES.get(dt.name, 'DISABLED')
 
 
 

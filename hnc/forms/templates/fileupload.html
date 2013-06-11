@@ -1,0 +1,33 @@
+<%namespace name="lib" file="hnc:forms/templates/lib.html"/>
+
+<div class="typed-upload-control" data-upload-single="false" data-file-types="*">
+    <script type="template/text" class="image-template">
+        ${self.imageTempl(widget, prefix, "{{ pos }}", "{{ path }}", "{{ fullPath }}", "{{ name }}")}
+    </script>
+    <div class="control-group typed-upload-picker">
+        <div class="filelist"></div>
+        <div class="controls">
+            <label>Upload file: <a class="btn btn-info btn-upload">Select File</a></label>
+        </div>
+    </div>
+    %for pos, doc in enumerate(value):
+        ${self.imageTempl(widget, prefix, str(pos), doc['file'], request.getStaticUrl(doc['file']), doc['name'], True)}
+    %endfor
+</div>
+
+<%def name="imageTempl(widget, prefix, pos, path, fullPath, name, saved = False)">
+    <div class="typed-uploaded-file image">
+        <a class="close">×</a>
+        <div class="control-group">
+            <input type="hidden" name="${widget.getName(prefix)}-${pos|n}.type" value="IMAGE"/>
+            <label class="control-label">Image</label>
+            <div class="controls">
+                <div class="img-wrap img-polaroid"><div class="img-wrap-inner">
+                    <a href="${fullPath|n}" target="_blank"><img src="${fullPath|n}" class="picture" /></a>
+                </div></div>
+               <input type="hidden" name="${widget.getName(prefix)}-${pos|n}.file" value="${path|n}"/>
+               <input type="text" class="input-xxlarge" name="${widget.getName(prefix)}-${pos|n}.name" placeholder="Picture name" value="${name|n}"/>
+           </div>
+        </div>
+    </div>
+</%def>
