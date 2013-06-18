@@ -308,6 +308,10 @@ class IntField(Field):
             attrs += ' maxlength="{}"'.format(self.maxlength)
         return attrs
 
+class DecimalField(Field):
+    input_classes = 'number'
+    _validator = formencode.validators.Number
+
 
 class URLField(Field):
     input_classes = 'input-xxlarge'
