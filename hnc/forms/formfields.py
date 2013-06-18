@@ -5,12 +5,17 @@ from formencode.validators import OneOf
 from hnc.forms.validators import TypeAheadValidator, DateValidator
 from pyramid.renderers import render
 import simplejson
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
+
 
 class NullConfigModel(object):
     name = None
     def getKey(self, request):return ''
     def getLabel(self, request):return '---'
+
+GridClasses = namedtuple('GridClasses', ['form_classes', 'control_group_classes', 'label_classes', 'controls_classes'])
+NO_GRID = GridClasses('form-validated', '', '', '')
+HORIZONTAL_GRID = GridClasses('form-validated form-horizontal', 'row', 'col col-lg-3', 'col col-lg-9')
 
 
 
@@ -34,7 +39,7 @@ class HtmlAttrs(object):
         return " ".join([u'{}="{}"'.format(k.replace("_", "-"),_(v)) for k,v in self.attrs.items()])
 
     def getGroupAttrs(self): return ''
-    def getGroupClasses(self): return ''
+    getGroupClasses = getClasses
 
 NONE = HtmlAttrs()
 REQUIRED = HtmlAttrs(True)
@@ -58,7 +63,7 @@ class DependentAttrs(HtmlAttrs):
         self.attrs['placeholder'] = placeholder
 
 
-    def getGroupClasses(self): return 'dependent-control'
+    def getGroupClasses(self): return '{} dependent-control'.format(self.getClasses())
     def getGroupAttrs(self):
         return 'data-dependency="{}" data-dependency-value="{}"'.format(self.dependency, self.dependencyValue)
 
@@ -98,7 +103,7 @@ class BaseFormMeta(type):
 class BaseForm(object):
     __metaclass__ = BaseFormMeta
     id = 'formdata'
-    classes = "form-horizontal form-validated"
+    grid = NO_GRID
     fields = []
     extra_forms = []
     pre_validators = []
@@ -147,8 +152,8 @@ class HeadingField(BaseField):
         self.classes = classes
     def getHeading(self, request, view):
         return unicode(self.format_string).format(request = request, view = view)
-    def render(self, prefix, request, values, errors, view = None):
-        return render(self.template, {'widget': self, 'view':view}, request)
+    def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
+        return render(self.template, {'widget': self, 'view':view, 'grid': grid}, request)
     def getClasses(self):
         return self.classes
 
@@ -221,11 +226,11 @@ class Field(BaseField):
     def getValues(self, name, request, values, errors, view):
         return {'value': values.get(name, self.if_empty), 'error':errors.get(name, self.if_empty)}
 
-    def render(self, prefix, request, values, errors, view = None):
+    def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
         if isinstance(errors, formencode.Invalid):
             errors = errors.error_dict
         params = self.getValues(self.name, request, values, errors, view)
-        params.update({'widget': self, 'prefix':prefix, 'view': view})
+        params.update({'widget': self, 'prefix':prefix, 'view': view, 'grid': grid})
         return render(self.template, params, request)
     def renderControl(self, prefix, request, values, errors, view = None):
         if isinstance(errors, formencode.Invalid):
@@ -258,9 +263,9 @@ class MultipleFormField(Field):
                 validators.update(v.getValidator(request))
         return {self.name : formencode.ForEach(BaseSchema(**validators), not_empty = self.attrs.required)}
 
-    def render(self, prefix, request, values, errors, view = None):
+    def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
         name = self.name
-        return render(self.template, {'widget': self, 'prefix':"{}.{}".format(prefix, self.name), 'value': values.get(name, ''), 'error':errors.get(name, ''), 'view':view}, request)
+        return render(self.template, {'widget': self, 'prefix':"{}.{}".format(prefix, self.name), 'value': values.get(name, ''), 'error':errors.get(name, ''), 'view':view, 'grid': grid}, request)
 
 
 
@@ -269,12 +274,12 @@ class StaticHiddenField(Field):
     def __init__(self, name, value):
         self.name = name
         self.value = value
-    def render(self, prefix, request, values, errors, view = None):
+    def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
         return '<input type="hidden" name="{}" value="{}"/>'.format(self.getName(prefix), self.value)
 
 class HiddenField(Field):
     _validator = formencode.validators.String
-    def render(self, prefix, request, values, errors, view = None):
+    def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
         return '<input type="hidden" name="{}" value="{}"/>'.format(self.getName(prefix), values.get(self.name, ''))
 
     def __init__(self, name):

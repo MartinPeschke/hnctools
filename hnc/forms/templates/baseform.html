@@ -1,4 +1,4 @@
-<form class="${form.classes}" method="post" id="${form.id}"
+<form class="${form.classes} ${form.grid.form_classes}" method="post" id="${form.id}"
     ${self.prelims(form)}
     %for field in form.fields:
         ${field.render(request)|n}
