@@ -2,13 +2,13 @@ from collections import OrderedDict
 import formencode
 from formencode.validators import Invalid
 from formencode.variabledecode import variable_decode
-
-
-import logging
 from paste.httpexceptions import HTTPNotImplemented
 from pyramid.httpexceptions import HTTPFound
+from pyramid.renderers import render_to_response
+
 from hnc.forms.messages import GenericErrorMessage, GenericSuccessMessage
 
+import logging
 log = logging.getLogger(__name__)
 
 
@@ -49,24 +49,32 @@ class FormHandler(object):
         self.result['values'].update([(k,{}) for k in self.schemas.keys()])
         self.result['errors'].update([(k,{}) for k in self.schemas.keys()])
 
+    def __call__(self):
+        request = self.request
+        if request.is_xhr:
+            result = getattr(self, 'ajax{}'.format(request.method))(self.context, self.request)
+            return render_to_response("json", result, self.request)
+        else:
+            return getattr(self, request.method)(self.context, self.request)
+
+
     def pre_fill_values(self, request, result):return result
     def add_globals(self, request, result):return result
 
-    def GET(self):
+    def GET(self, context, request):
         self.request.session.get_csrf_token()
         self.result = self.add_globals(self.request, self.result)
         self.result = self.pre_fill_values(self.request, self.result)
         return self.result
 
-    def POST(self):
+    def POST(self, context, request):
         try:
             return self.validate_form()
         except InvalidCSRFToken:
             self.result = self.add_globals(self.request, self.result)
             return self.result
 
-    ajaxGET = GET
-    def ajax(self):
+    def ajaxPOST(self, context, request):
         result = self.validate_json()
         return result
 

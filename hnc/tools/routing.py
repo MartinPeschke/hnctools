@@ -13,12 +13,12 @@ class App(object):
 
 
 class BaseRoute(object):
-    def getRouteName(self, app_name, route_name = None):
-        return route_name if route_name is not None else self.name
-
-    def setup(self, apps, config):
-        raise NotImplementedError()
-
+    def adjust_renderers(self, path):
+        if self.renderer:
+            if self.renderer.endswith(".html"):
+                self.renderer = "{}{}".format(path, self.renderer)
+            elif self.renderer.endswith(".xml"):
+                self.renderer = "{}{}".format(path, self.renderer)
 
 
 def redirectView(toRoute, *args, **kwargs):
@@ -36,11 +36,18 @@ class RedirectRoute(BaseRoute):
         self.route_kwargs = kwargs
 
     def setup(self, app, config):
-        route_name =self.getRouteName(app.name)
-        config.add_route(route_name, self.path_exp)
-        view = redirectView(self.getRouteName(app.name, self.to_route), *self.route_args, **self.route_kwargs)
+        config.add_route(self.name, self.path_exp)
+        view = redirectView(self.to_route, *self.route_args, **self.route_kwargs)
         config.add_view(view, route_name = route_name)
 
+
+class TraversalRoute(object):
+    def __init__(self, view, context, renderer = None, **kwargs):
+        self.view = view
+        self.context = context
+        self.renderer = renderer
+    def setup(self, app, config):
+        config.add_view(self.view, context = self.context, renderer = self.renderer, **kwargs)
 
 
 class FunctionRoute(BaseRoute):
@@ -53,19 +60,12 @@ class FunctionRoute(BaseRoute):
         self.route_attrs = route_attrs
 
     def setup(self, app, config):
-        route_name =self.getRouteName(app.name)
-        config.add_route(route_name, self.path_exp, factory = self.factory, **self.route_attrs)
-        self.addView(config, route_name)
+        config.add_route(self.name, self.path_exp, factory = self.factory, **self.route_attrs)
+        self.addView(config, self.name)
 
     def addView(self, config, route_name):
         if(self.view):config.add_view(self.view, route_name = route_name, renderer = self.renderer)
 
-    def adjust_renderers(self, path):
-        if self.renderer:
-            if self.renderer.endswith(".html"):
-                self.renderer = "{}{}".format(path, self.renderer)
-            elif self.renderer.endswith(".xml"):
-                self.renderer = "{}{}".format(path, self.renderer)
 
 
 class OAuthLoginRoute(FunctionRoute):
@@ -73,14 +73,12 @@ class OAuthLoginRoute(FunctionRoute):
         super(OAuthLoginRoute, self).__init__(name, path_exp, factory, view, renderer, route_attrs)
 
     def setup(self, app, config):
-        route_name =self.getRouteName(app.name)
-        config.add_route(route_name, self.path_exp, factory = self.factory, **self.route_attrs)
-        config.add_route('{}_login'.format(route_name), '{}/*traverse'.format(self.path_exp), factory = self.factory, use_global_views = True)
-        self.addView(config, route_name)
+        config.add_route(self.name, self.path_exp, factory = self.factory, **self.route_attrs)
+        config.add_route('{}_login'.format(self.name), '{}/*traverse'.format(self.path_exp), factory = self.factory, use_global_views = True)
+        self.addView(config, self.name)
 
     def addView(self, config, route_name):
         config.add_view(self.view, route_name = route_name, renderer = self.renderer)
-
 
 
 class ClassRoute(FunctionRoute):
@@ -95,10 +93,9 @@ class ClassRoute(FunctionRoute):
 
 class OAuthClassRoute(ClassRoute):
     def setup(self, app, config):
-        route_name =self.getRouteName(app.name)
-        config.add_route(route_name, self.path_exp, factory = self.factory, **self.route_attrs)
-        config.add_route('{}_login'.format(route_name), '{}/*traverse'.format(self.path_exp), factory = self.factory, use_global_views = True)
-        self.addView(config, route_name)
+        config.add_route(self.name, self.path_exp, factory = self.factory, **self.route_attrs)
+        config.add_route('{}_login'.format(self.name), '{}/*traverse'.format(self.path_exp), factory = self.factory, use_global_views = True)
+        self.addView(config, self.name)
 
 
 def route_factory(projectlabel, route_list, app, config, template_path_prefix):

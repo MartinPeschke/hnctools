@@ -1,5 +1,6 @@
 import urllib, logging, simplejson
 from pyramid.response import Response
+from pyramid.security import NO_PERMISSION_REQUIRED
 
 log = logging.getLogger(__name__)
 
@@ -77,4 +78,4 @@ def extend_request(config):
     config.add_request_method(fwd_url)
     config.add_request_method(ajax_url)
 
-    config.add_view(jsonAwareRedirectView, context=JsonAwareRedirect)
+    config.add_view(jsonAwareRedirectView, context=JsonAwareRedirect, permission = NO_PERMISSION_REQUIRED)
