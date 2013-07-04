@@ -9,9 +9,6 @@ class JsonAwareRedirect(Exception):
     def __init__(self, location):
         self.location = location
 
-def is_json(request):
-    return 'application/json' in request.content_type
-
 def fwd_raw(request, location):
     raise JsonAwareRedirect(location = location)
 
@@ -47,7 +44,7 @@ def ajax_url(request, route_name, secure = False, escaped = {}, *args, **kwargs)
     return url
 
 def jsonAwareRedirectView(exc, request):
-    if request.is_json:
+    if request.is_xhr:
         response = Response(simplejson.dumps({'redirect': exc.location}), 200, content_type = 'application/json')
     else:
         response = Response("Resource Found!", 302, headerlist = [('location', exc.location)])
@@ -70,7 +67,6 @@ def extend_request(config):
         return request.globals.backend
     config.add_request_method(backend, 'backend', reify=True)
 
-    config.add_request_method(is_json, 'is_json', reify=True)
     config.add_request_method(fwd_raw)
     config.add_request_method(rld_url)
     config.add_request_method(rld)

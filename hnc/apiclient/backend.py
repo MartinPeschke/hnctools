@@ -93,7 +93,7 @@ class Backend(object):
     headers = self.standard_headers.copy()
     headers.update(options.get('headers', {}))
     endpoint = self.get_endpoint_url(options['url'])
-    log.debug("Endpoint: %s, Method: %s, Headers: %s", endpoint, method, headers)
+    log.debug("Endpoint: %s, Method: %s, Headers: %s", endpoint, method, ','.join(['{}:{}'.format(k,v) for k,v in headers.items()]))
     if method == "POST":
       data = simplejson.dumps(options['data'], cls=DateAwareEncoder)
       log.debug("DATA: %s", data)

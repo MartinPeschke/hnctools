@@ -110,7 +110,10 @@ class BaseForm(object):
     chained_validators = []
     template = 'hnc.forms:templates/baseform.html'
 
-
+    def __init__(self, **kwargs):
+        for k,v in kwargs.items():
+            setattr(self,  k, v)
+        super(BaseForm, self).__init__()
 
 
     def render(self, request):
@@ -244,6 +247,7 @@ class Field(BaseField):
 
 
 class MultipleFormField(Field):
+    __metaclass__ = BaseFormMeta
     template = 'hnc.forms:templates/repeatableform.html'
     fields = []
     add_more_link_label = '+'
