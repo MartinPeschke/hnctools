@@ -391,13 +391,15 @@ class ChoiceField(Field):
 class RadioChoice(ChoiceField):
     template = 'hnc.forms:templates/radioselect.html'
     input_classes = 'radio inline'
+
 def configattr(name, default_none):
     def f(request):
-        values = getattr(request.context.config, name)
+        values = getattr(request.root.config, name)
         if default_none:
             values = [NullConfigModel()] + list(values)
         return values
     return f
+
 class ConfigChoiceField(ChoiceField):
     def __init__(self, name, label, configAttr, attrs = NONE, default_none = True, input_classes=''):
         self.name = name
