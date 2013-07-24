@@ -251,9 +251,10 @@ class MultipleFormField(Field):
     template = 'hnc.forms:templates/repeatableform.html'
     fields = []
     add_more_link_label = '+'
-    def __init__(self, name, label = None, attrs = NONE, classes = 'form-embedded-wrapper'):
+    def __init__(self, name, label = None, positioned_label = None, attrs = NONE, classes = 'form-embedded-wrapper'):
         self.name = name
         self.label = label
+        self.positioned_label = positioned_label
         self.attrs = attrs
         self.classes = classes
 
@@ -271,6 +272,8 @@ class MultipleFormField(Field):
         name = self.name
         return render(self.template, {'widget': self, 'prefix':"{}.{}".format(prefix, self.name), 'value': values.get(name, ''), 'error':errors.get(name, ''), 'view':view, 'grid': grid}, request)
 
+    def getPositionedLabel(self, request, position):
+        return '{} <span class="numbering">{}</span>'.format(request._(self.positioned_label), position)
 
 
 class StaticHiddenField(Field):

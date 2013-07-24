@@ -1,13 +1,19 @@
 <%!
     from itertools import izip_longest
 %>
+
 <div data-closure="form" ${'data-required="true"' if widget.attrs.required else ''|n} class="repeatable-form">
+    %if widget.label:
+        <span class="embedded-form-label">
+            ${widget.getLabel(request)|n}
+        </span>
+    %endif
     %for j, (values, errors) in enumerate(izip_longest(value or [{}], getattr(error, "error_list", [{}]), fillvalue = {})):
         <div class="${widget.getClasses()}" data-sequence="${j}">
-            %if widget.label:
-                    <span class="embedded-from-label">
-                        ${widget.getLabel(request)|n} <span class="numbering">${j+1}</span>
-                    </span>
+            %if widget.positioned_label:
+                <span class="embedded-form-label positioned">
+                    ${widget.getPositionedLabel(request, j+1)|n}
+                </span>
             %endif
             %for field in widget.fields:
                 ${field.render('{}-{}'.format(prefix, j), request, values, errors)|n}

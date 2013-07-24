@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.0.9'
+version = '0.0.91'
 
 
 tests_require = [
-    'WebTest >= 1.3.1', # py3 compat
+     'WebTest', # py3 compat
     ]
 testing_extras = tests_require + [
     'nose',
@@ -34,7 +34,7 @@ setup(name='hnc',
       zip_safe=True,
       install_requires=[
           # -*- Extra requirements: -*-
-        "babel", "pyramid", "simplejson", "httplib2", "formencode", "lxml", "beautifulsoup4"
+        "babel", "pyramid", "simplejson", "httplib2", "formencode", "lxml", "beautifulsoup"
       ],
       entry_points="""
       # -*- Entry points: -*-
