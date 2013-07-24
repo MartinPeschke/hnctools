@@ -174,21 +174,22 @@ class PlainHeadingField(BaseField):
 class Field(BaseField):
     template = 'hnc.forms:templates/basefield.html'
     is_validated = True
-    validator_args = {}
     if_empty = ''
     min = None
     max = None
     type = 'text'
+
+    validator_args = {}
+    classes = ''
     input_classes = ''
-    def __init__(self, name, label, attrs = NONE, classes = '', validator_args = {}, group_classes = '', label_classes = '', input_classes = '', **kwargs):
+    group_classes = ''
+    label_classes = ''
+    input_classes = ''
+
+    def __init__(self, name, label = None, attrs = NONE, **kwargs):
         self.name = name
         self.label = label
         self.attrs = attrs
-        self.validator_args = validator_args or self.validator_args
-        self.group_classes = group_classes or self.group_classes
-        self.label_classes = label_classes
-        self.input_classes = input_classes or self.input_classes
-        self.input_classes = '{} {}'.format(self.input_classes, classes)
         for k,v in kwargs.items():
             setattr(self, k, v)
 
@@ -252,20 +253,14 @@ class MultipleFormField(Field):
     template = 'hnc.forms:templates/repeatableform.html'
     fields = []
     add_more_link_label = '+'
+    positioned_label = ''
     prepend = False
     appendTarget = "embedded-form-fields"
+    classes = 'form-embedded-wrapper'
 
-    def __init__(self, name, label = None, positioned_label = None, attrs = NONE, classes = 'form-embedded-wrapper', **kwargs):
-        self.name = name
-        self.label = label
-        self.positioned_label = positioned_label
-        self.attrs = attrs
-        self.classes = classes
-        for k,v in kwargs.items():
-            setattr(self, k, v)
 
     def getClasses(self):
-        return  self.classes
+        return self.classes
 
     def getValidator(self, request):
         validators = {}
@@ -363,15 +358,6 @@ class RadioBoolField(CheckboxField):
 class DateField(StringField):
     input_classes = ' date-field'
     format = "%Y-%m-%d"
-    def __init__(self, name, label = None, attrs = NONE, validator_args = {}, input_classes = '', group_classes = '', **kwargs):
-        self.name = name
-        self.label = label
-        self.attrs = attrs
-        self.validator_args = validator_args
-        self.input_classes = input_classes
-        self.group_classes = group_classes
-        for k,v in kwargs.items():
-            setattr(self, k, v)
 
     def valueToForm(self, value):
         if not value: return ''
@@ -384,13 +370,9 @@ class DateField(StringField):
 
 class ChoiceField(Field):
     template = 'hnc.forms:templates/dropdown.html'
-    def __init__(self, name, label, optionGetter, attrs = NONE, input_classes = '', group_classes = ''):
-        self.name = name
-        self.label = label
-        self.attrs = attrs
-        self.input_classes = input_classes
-        self.group_classes = group_classes
+    def __init__(self, name, label, optionGetter, attrs = NONE, **kwargs):
         self.optionGetter = optionGetter
+        super(ChoiceField, self).__init__( name, label, attrs, **kwargs)
 
     def getValidator(self, request):
         return {self.name: OneOf(map(methodcaller('getKey', request), self.optionGetter(request)), hideList = True)}
@@ -412,29 +394,29 @@ def configattr(name, default_none):
     return f
 
 class ConfigChoiceField(ChoiceField):
-    def __init__(self, name, label, configAttr, attrs = NONE, default_none = True, input_classes=''):
-        self.name = name
-        self.label = label
-        self.attrs = attrs
-        self.input_classes = input_classes
-        self.optionGetter = configattr(configAttr, default_none)
+    def __init__(self, name, label, configAttr, default_none = False, attrs = NONE, **kwargs):
+        optionGetter = configattr(configAttr, default_none)
+        super(ConfigChoiceField, self).__init__(name, label, optionGetter, attrs, **kwargs)
+
 
 
 class TypeAheadField(StringField):
     template = 'hnc.forms:templates/typeahead.html'
     if_empty = ''
-    def __init__(self, name, label, api_url, api_result, dependency = None, attrs = NONE, classes = 'typeahead', validator_args = {}):
-        super(TypeAheadField, self).__init__(name, label, attrs, classes, validator_args)
+    classes = 'typeahead'
+    def __init__(self, name, label, api_url, api_result, dependency = None, attrs = NONE, **kwargs):
         self.dependency = dependency
         self.api_result = api_result
         self.api_type = None
         self.api_url = api_url
+        super(TypeAheadField, self).__init__(name, label, attrs, **kwargs)
 
 class ConfigTypeAheadField(StringField):
     template = 'hnc.forms:templates/typeahead_config.html'
     if_empty = ''
-    def __init__(self, name, label, configAttr, attrs = NONE, classes = 'configtypeahead'):
-        super(ConfigTypeAheadField, self).__init__(name, label, attrs, classes)
+    classes = 'configtypeahead'
+    def __init__(self, name, label, configAttr, attrs = NONE, **kwargs):
+        super(ConfigTypeAheadField, self).__init__(name, label, attrs, **kwargs)
         self.configAttr = configAttr
 
 
@@ -473,8 +455,10 @@ class TagSearchField(StringField):
 
 class TokenTypeAheadField(StringField):
     template = 'hnc.forms:templates/typeahead_token.html'
-    def __init__(self, name, label, api_url, api_result, dependency = None, attrs = NONE, classes = 'typeahead', validator_args = {}):
-        super(TokenTypeAheadField, self).__init__(name, label, attrs, classes, validator_args)
+    classes = 'typeahead'
+    def __init__(self, name, label, api_url, api_result, dependency = None, attrs = NONE, **kwargs):
+
+        super(TokenTypeAheadField, self).__init__(name, label, attrs, **kwargs)
         self.dependency = dependency
         self.api_result = api_result
         self.api_url = api_url

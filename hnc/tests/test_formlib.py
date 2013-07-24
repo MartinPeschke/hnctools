@@ -3,7 +3,7 @@ from random import sample
 import unittest
 from BeautifulSoup import BeautifulSoup
 from pyramid import testing
-from hnc.forms.formfields import ChoiceField, MultipleFormField, StringField, DateField
+from hnc.forms.formfields import ChoiceField, MultipleFormField, StringField, DateField, Field, REQUIRED, HtmlAttrs
 
 
 class DummyNamedModel(object):
@@ -37,6 +37,32 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
         self.config.add_renderer('.html', pyramid.mako_templating.renderer_factory)
 
 
+    #Base Field Classes
+
+    def test_field_all_classes(self):
+        output = BeautifulSoup(Field('name', 'label', input_classes="INPUT_CLASS", control_classes="CONTROLS_CLASS", group_classes="GROUP_CLASS").render("FORM", DummyRequest(), {}, {}))
+        self.assertTrue('GROUP_CLASS' in output.div['class'])
+        self.assertTrue('CONTROLS_CLASS' in output.div.div['class'])
+        self.assertTrue('INPUT_CLASS' in output.div.div.input['class'])
+
+    def test_field_attrs_required(self):
+        output = BeautifulSoup(Field('name', 'label', attrs = REQUIRED).render("FORM", DummyRequest(), {}, {}))
+        self.assertEqual(output.find('input', 'required')['name'], "FORM.name")
+        self.assertTrue("required" in output.find('div', 'control-group')['class'])
+
+    def test_field_attrs_placeholder(self):
+        output = BeautifulSoup(Field('name', 'label', attrs = HtmlAttrs(placeholder="REAL_PLACEHOLDER"), input_classes="SUPER_CLASS").render("FORM", DummyRequest(), {}, {}))
+        self.assertEqual(output.find('input', 'SUPER_CLASS')['placeholder'], "REAL_PLACEHOLDER")
+
+    def test_field_attrs_data(self):
+        output = BeautifulSoup(Field('name', 'label', attrs = HtmlAttrs(placeholder="REAL_PLACEHOLDER", data_target_plan="TARGET_PLAN"), input_classes="SUPER_CLASS").render("FORM", DummyRequest(), {}, {}))
+        self.assertEqual(output.find('input', 'SUPER_CLASS')['placeholder'], "REAL_PLACEHOLDER")
+        self.assertEqual(output.find('input', 'SUPER_CLASS')['data-target-plan'], "TARGET_PLAN")
+
+
+
+    #Choice Fields
+
     def test_zero_choices_field(self):
         output = BeautifulSoup(ChoiceField('name', 'label', lambda x: []).render("FORM", DummyRequest(), {}, {}))
         self.assertEqual(len(output.div.div.find("select").findAll("option")), 0)
@@ -50,14 +76,12 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
         output = BeautifulSoup(ChoiceField('name', 'label', lambda x: []).render(prefix, DummyRequest(), {}, {}))
         self.assertEqual(output.div.div.find("select")['name'], "{}.name".format(prefix))
 
-
-
     # Multi Form
 
     def _get_multi_form(self, values = {}, errors = {}):
         class Field(MultipleFormField):
             fields = [ StringField("enrolled", "Enrolled"), StringField("graduated", "Graduated") ]
-        return BeautifulSoup(Field('VALUE').render("FORM", DummyRequest(), values, errors))
+        return BeautifulSoup(Field('VALUE', None).render("FORM", DummyRequest(), values, errors))
 
     def test_multi_form(self):
         form = self._get_multi_form()
@@ -72,7 +96,7 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
         form = self._get_multi_form({"VALUE":[{'enrolled':2}]*8})
         self.assertEqual(len(form.div.findAll("div", 'control-group')), 16)
 
-    # Multi Form
+    # DateFields
 
     def getDateField(self, format = "%Y-%m-%d", values= {}, errors= {}):
         return BeautifulSoup(DateField('VALUE', format=format).render("FORM", DummyRequest(), values, errors))
@@ -84,6 +108,8 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
     def test_simple_date_validation(self):
         field = self.getDateField(format = "%d.%m.%Y", values = {'VALUE': datetime(2010, 12, 31)})
         self.assertEqual(field.find("input")['value'], "31.12.2010")
+
+
 
 
 
