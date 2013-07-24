@@ -3,6 +3,16 @@ import sys, os
 
 version = '0.0.9'
 
+
+tests_require = [
+    'WebTest >= 1.3.1', # py3 compat
+    ]
+testing_extras = tests_require + [
+    'nose',
+    'coverage',
+    'virtualenv', # for scaffolding tests
+    ]
+
 setup(name='hnc',
       version=version,
       description="",
@@ -14,12 +24,17 @@ setup(name='hnc',
       author_email='martin@hackandcraft.com',
       url='',
       license='',
+      extras_require = {
+          'testing':testing_extras,
+          },
+      tests_require = tests_require,
+      test_suite="hnc.tests",
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=True,
       install_requires=[
           # -*- Extra requirements: -*-
-        "babel", "pyramid", "simplejson", "httplib2"
+        "babel", "pyramid", "simplejson", "httplib2", "formencode", "lxml", "beautifulsoup4"
       ],
       entry_points="""
       # -*- Entry points: -*-
