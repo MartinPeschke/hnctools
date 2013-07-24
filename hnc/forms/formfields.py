@@ -144,7 +144,7 @@ class BaseField(object):
     control_classes = ''
     input_classes = ''
     attrs = NONE
-
+    name = None
 
 
 class HeadingField(BaseField):
@@ -159,15 +159,16 @@ class HeadingField(BaseField):
         return render(self.template, {'widget': self, 'view':view, 'grid': grid}, request)
     def getClasses(self):
         return self.classes
+    renderControl = render
 
 class PlainHeadingField(BaseField):
     def __init__(self, label, tag = 'h4', classes = ''):
         self.label = label
         self.tag = tag
         self.classes = classes
-    def render(self, prefix, request, values, errors, view = None):
+    def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
         return '<{0.tag} class="{0.classes}">{1}</{0.tag}>'.format(self, request._(self.label))
-
+    renderControl = render
 
 
 class Field(BaseField):
@@ -251,12 +252,17 @@ class MultipleFormField(Field):
     template = 'hnc.forms:templates/repeatableform.html'
     fields = []
     add_more_link_label = '+'
-    def __init__(self, name, label = None, positioned_label = None, attrs = NONE, classes = 'form-embedded-wrapper'):
+    prepend = False
+    appendTarget = "embedded-form-fields"
+
+    def __init__(self, name, label = None, positioned_label = None, attrs = NONE, classes = 'form-embedded-wrapper', **kwargs):
         self.name = name
         self.label = label
         self.positioned_label = positioned_label
         self.attrs = attrs
         self.classes = classes
+        for k,v in kwargs.items():
+            setattr(self, k, v)
 
     def getClasses(self):
         return  self.classes
@@ -357,13 +363,15 @@ class RadioBoolField(CheckboxField):
 class DateField(StringField):
     input_classes = ' date-field'
     format = "%Y-%m-%d"
-    def __init__(self, name, label, attrs = NONE, validator_args = {}, input_classes = '', group_classes = ''):
+    def __init__(self, name, label = None, attrs = NONE, validator_args = {}, input_classes = '', group_classes = '', **kwargs):
         self.name = name
         self.label = label
         self.attrs = attrs
         self.validator_args = validator_args
         self.input_classes = input_classes
         self.group_classes = group_classes
+        for k,v in kwargs.items():
+            setattr(self, k, v)
 
     def valueToForm(self, value):
         if not value: return ''
@@ -521,7 +529,8 @@ class CombinedField(StringField):
     def getValidator(self, request):
         validator = {}
         for w in self.fields:
-            validator.update(w.getValidator(request))
+            if w.name:
+                validator.update(w.getValidator(request))
         return validator
     def getValues(self, name, request, values, errors, view):
         return {'value': values, 'error':{f.name: errors.get(f.name) for f in self.fields if errors.get(f.name)}}

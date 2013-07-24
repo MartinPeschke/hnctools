@@ -1,8 +1,9 @@
+from datetime import datetime
 from random import sample
 import unittest
 from BeautifulSoup import BeautifulSoup
 from pyramid import testing
-from hnc.forms.formfields import ChoiceField, MultipleFormField, StringField
+from hnc.forms.formfields import ChoiceField, MultipleFormField, StringField, DateField
 
 
 class DummyNamedModel(object):
@@ -49,10 +50,14 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
         output = BeautifulSoup(ChoiceField('name', 'label', lambda x: []).render(prefix, DummyRequest(), {}, {}))
         self.assertEqual(output.div.div.find("select")['name'], "{}.name".format(prefix))
 
+
+
+    # Multi Form
+
     def _get_multi_form(self, values = {}, errors = {}):
         class Field(MultipleFormField):
             fields = [ StringField("enrolled", "Enrolled"), StringField("graduated", "Graduated") ]
-        return BeautifulSoup(Field('COMBINED').render("FORM", DummyRequest(), values, errors))
+        return BeautifulSoup(Field('VALUE').render("FORM", DummyRequest(), values, errors))
 
     def test_multi_form(self):
         form = self._get_multi_form()
@@ -60,13 +65,25 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
         self.assertEqual(len(form.div.findAll("label")), 2)
 
     def test_multi_form_with_one_value(self):
-        form = self._get_multi_form({"COMBINED":[{'enrolled':2}]})
+        form = self._get_multi_form({"VALUE":[{'enrolled':2}]})
         self.assertEqual(len(form.div.findAll("div", 'control-group')), 2)
 
     def test_multi_form_with_many_values(self):
-        form = self._get_multi_form({"COMBINED":[{'enrolled':2}]*8})
+        form = self._get_multi_form({"VALUE":[{'enrolled':2}]*8})
         self.assertEqual(len(form.div.findAll("div", 'control-group')), 16)
 
+    # Multi Form
+
+    def getDateField(self, format = "%Y-%m-%d", values= {}, errors= {}):
+        return BeautifulSoup(DateField('VALUE', format=format).render("FORM", DummyRequest(), values, errors))
+
+    def test_simple_date_validation(self):
+        field = self.getDateField(format = "%Y-%m-%d", values = {'VALUE': datetime(2010, 12, 31)})
+        self.assertEqual(field.find("input")['value'], "2010-12-31")
+
+    def test_simple_date_validation(self):
+        field = self.getDateField(format = "%d.%m.%Y", values = {'VALUE': datetime(2010, 12, 31)})
+        self.assertEqual(field.find("input")['value'], "31.12.2010")
 
 
 
