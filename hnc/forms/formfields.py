@@ -6,6 +6,7 @@ from hnc.forms.validators import TypeAheadValidator, DateValidator
 from pyramid.renderers import render
 import simplejson
 from collections import OrderedDict, namedtuple
+from hnc.tools.tools import deep_dict, dict_merge, deep_get
 
 
 class NullConfigModel(object):
@@ -124,7 +125,7 @@ class BaseForm(object):
         validators = {}
         for v in cls.fields:
             if v.is_validated:
-                validators.update(v.getValidator(request))
+                validators = dict_merge(validators, v.getValidator(request))
         for form in cls.extra_forms:
             validators[form.id] = form.getSchema(request)
         validators['pre_validators'] = cls.pre_validators
@@ -215,7 +216,7 @@ class Field(BaseField):
             params.setdefault('if_missing', None)
         return params
     def getValidator(self, request):
-        return {self.name: self._validator(**self.getValidatorArgs())}
+        return deep_dict(self.name, self._validator(**self.getValidatorArgs()))
 
     def valueToForm(self, value): return '' if value is None else value
 
@@ -229,7 +230,7 @@ class Field(BaseField):
         return  '{} {}'.format(self.input_classes, self.attrs.getClasses())
 
     def getValues(self, name, request, values, errors, view):
-        return {'value': values.get(name, self.if_empty), 'error':errors.get(name, self.if_empty)}
+        return {'value': deep_get(values, name, self.if_empty), 'error':deep_get(errors, name, self.if_empty)}
 
     def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
         if isinstance(errors, formencode.Invalid):
@@ -266,8 +267,8 @@ class MultipleFormField(Field):
         validators = {}
         for v in self.fields:
             if v.is_validated:
-                validators.update(v.getValidator(request))
-        return {self.name : formencode.ForEach(BaseSchema(**validators), not_empty = self.attrs.required)}
+                validators = dict_merge(validators, v.getValidator(request))
+        return {self.name : formencode.ForEach(BaseSchema(**validators), not_empty = self.attrs.required, convert_to_list = True, if_empty = None)}
 
     def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
         name = self.name
@@ -353,18 +354,17 @@ class RadioBoolField(CheckboxField):
     input_classes = 'radio'
 
 
-
-
 class DateField(StringField):
-    input_classes = ' date-field'
+    input_classes = 'date-field'
     format = "%Y-%m-%d"
 
     def valueToForm(self, value):
         if not value: return ''
         elif isinstance(value, basestring): return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S").strftime(self.format)
         else: return value.strftime(self.format)
+
     def getValidator(self, request):
-        return {self.name: DateValidator(format = self.format, not_empty = self.attrs.required)}
+        return deep_dict(self.name, DateValidator(format = self.format, not_empty = self.attrs.required))
 
 
 
@@ -375,7 +375,7 @@ class ChoiceField(Field):
         super(ChoiceField, self).__init__( name, label, attrs, **kwargs)
 
     def getValidator(self, request):
-        return {self.name: OneOf(map(methodcaller('getKey', request), self.optionGetter(request)), hideList = True)}
+        return deep_dict(self.name, OneOf(map(methodcaller('getKey', request), self.optionGetter(request)), hideList = True))
     def getOptions(self, request):
         return self.optionGetter(request)
     def isSelected(self, option, value, request):
@@ -443,7 +443,8 @@ class TagSearchField(StringField):
         else: self.query_extra = None
 
     def getValidator(self, request):
-        return {self.name: formencode.ForEach(name = formencode.validators.String(required=True))}
+        return deep_dict(self.name, formencode.ForEach(name = formencode.validators.String(required=True)))
+
     def getValueData(self, name, request, value):
         return simplejson.dumps(value) if value else 'null'
     def getQueryExtra(self):
@@ -464,10 +465,10 @@ class TokenTypeAheadField(StringField):
         self.api_url = api_url
 
     def getValidator(self, request):
-        return {self.name: TypeAheadValidator(self.attrs)}
+        return deep_dict(self.name, TypeAheadValidator(self.attrs))
 
     def getValues(self, name, request, values, errors, view):
-        return {'value': values.get(name, {}), 'error':errors.get(name, {})}
+        return {'value': deep_get(values, name, {}), 'error':deep_get(errors, name, {})}
 
 
 
@@ -481,8 +482,8 @@ class FileUploadField(Field):
     def getClasses(self):
         return self.classes
     def getValidator(self, request):
-        validators = {}
-        return {self.name : formencode.ForEach(BaseSchema(file = formencode.validators.String(), name=formencode.validators.String()), not_empty = self.attrs.required)}
+        return deep_dict(self.name, formencode.ForEach(BaseSchema(file = formencode.validators.String(), name=formencode.validators.String()), not_empty = self.attrs.required))
+
     TYPES = {'IMAGE': "jpg,gif,png", 'OTHER': "*.*"}
     def getFileTypes(self, dt):
         return self.TYPES.get(dt.name, 'DISABLED')
@@ -514,7 +515,8 @@ class CombinedField(StringField):
         validator = {}
         for w in self.fields:
             if w.name:
-                validator.update(w.getValidator(request))
+                dict_merge(validator, w.getValidator(request))
         return validator
     def getValues(self, name, request, values, errors, view):
+        # this probably breaks on dotted notation
         return {'value': values, 'error':{f.name: errors.get(f.name) for f in self.fields if errors.get(f.name)}}

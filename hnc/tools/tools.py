@@ -1,4 +1,5 @@
 import base64
+from copy import deepcopy
 import decimal
 from urlparse import urlunparse, urlparse
 import zlib
@@ -42,6 +43,44 @@ def dict_contains(d, keys):
     if not d or not keys:
         return False
     return len(keys) == len(filter(lambda x: bool(x), [d.get(k, None) for k in keys]))
+
+def dict_merge(a, b):
+    '''recursively shallow merges dict's. not just simple a['key'] = b['key'], if
+    both a and bhave a key who's value is a dict then dict_merge is called
+    on both values and the result stored in the returned dictionary.'''
+    if not isinstance(b, dict):
+        return b
+    result = a
+    for k, v in b.iteritems():
+        if k in result and isinstance(result[k], dict):
+                result[k] = dict_merge(result[k], v)
+        else:
+            result[k] = v
+    return result
+
+def deep_dict(k, v):
+    if not '.' in k: return {k:v}
+
+    root = d = {}
+    parts = k.split(".")
+    for key in parts[:-1]:
+        d = d.setdefault(key, {})
+    d[parts[-1]] = v
+
+    return root
+
+
+def deep_get(map, key, default = None):
+    if '.' not in key:
+        return map.get(key, default)
+    parts = key.split(".")
+    for k in parts:
+        map = map.get(k)
+        if not map: break
+    return map if map is not None else default
+
+
+
 
 def encode_minimal_repr(map):
     return base64.urlsafe_b64encode(zlib.compress(simplejson.dumps(map, cls=DateAwareJSONEncoder)))

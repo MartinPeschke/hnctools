@@ -60,7 +60,6 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
         self.assertEqual(output.find('input', 'SUPER_CLASS')['data-target-plan'], "TARGET_PLAN")
 
 
-
     #Choice Fields
 
     def test_zero_choices_field(self):
@@ -75,6 +74,7 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
         prefix = ''.join(sample("abcdefgehijkkllmnoprstuvw", 10))
         output = BeautifulSoup(ChoiceField('name', 'label', lambda x: []).render(prefix, DummyRequest(), {}, {}))
         self.assertEqual(output.div.div.find("select")['name'], "{}.name".format(prefix))
+
 
     # Multi Form
 
@@ -95,6 +95,7 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
     def test_multi_form_with_many_values(self):
         form = self._get_multi_form({"VALUE":[{'enrolled':2}]*8})
         self.assertEqual(len(form.div.findAll("div", 'control-group')), 16)
+
 
     # DateFields
 
