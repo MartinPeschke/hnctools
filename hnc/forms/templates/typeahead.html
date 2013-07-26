@@ -2,7 +2,7 @@
 <%namespace name="lib" file="lib.html"/>
 
 <%block name="controls">
-    <div class="typeahead-container js-form-widget"  data-module="libs/typeahead"
+    <div class="typeahead-container js-form-widget ${widget.control_classes}"  data-module="libs/typeahead"
          data-api-url="${widget.api_url}" data-api-result="${widget.api_result}"
         ${'data-api-dependency="{}"'.format(widget.dependency) if widget.dependency else ''|n}
     >

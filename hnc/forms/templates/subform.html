@@ -1,0 +1,3 @@
+%for field in widget.fields:
+    ${field.render(widget.getName(prefix), request, value, error, view, grid)|n}
+%endfor

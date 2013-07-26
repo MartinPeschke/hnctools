@@ -140,10 +140,13 @@ class BaseForm(object):
 class BaseField(object):
     is_validated = False
     html_help = None
+    validator_args = {}
+    classes = ''
+    input_classes = ''
     group_classes = ''
     label_classes = ''
-    control_classes = ''
     input_classes = ''
+    control_classes = ''
     attrs = NONE
     name = None
 
@@ -180,12 +183,7 @@ class Field(BaseField):
     max = None
     type = 'text'
 
-    validator_args = {}
-    classes = ''
-    input_classes = ''
-    group_classes = ''
-    label_classes = ''
-    input_classes = ''
+
 
     def __init__(self, name, label = None, attrs = NONE, **kwargs):
         self.name = name
@@ -278,6 +276,20 @@ class MultipleFormField(Field):
         return '{} <span class="numbering">{}</span>'.format(request._(self.positioned_label), position)
 
 
+class SubForm(Field):
+    __metaclass__ = BaseFormMeta
+    template = 'hnc.forms:templates/subform.html'
+    fields = []
+    if_empty = {}
+
+    def getValidator(self, request):
+        validators = {}
+        for v in self.fields:
+            if v.is_validated:
+                validators = dict_merge(validators, v.getValidator(request))
+        return {self.name : BaseSchema(**validators)}
+
+
 class StaticHiddenField(Field):
     _validator = formencode.validators.String
     def __init__(self, name, value):
@@ -343,6 +355,10 @@ class CheckboxField(Field):
     value = 'true'
     validator_args = {'if_missing': False}
     _validator = formencode.validators.StringBool
+
+    def getValidator(self, request):
+        return super(CheckboxField, self).getValidator(request)
+
 
 class CheckboxPostField(CheckboxField):
     template = 'hnc.forms:templates/checkbox_post.html'

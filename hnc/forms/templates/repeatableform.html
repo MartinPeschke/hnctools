@@ -22,7 +22,7 @@
                 </span>
             %endif
             %for field in widget.fields:
-                ${field.render('{}-{}'.format(prefix, j), request, values, errors)|n}
+                ${field.render('{}-{}'.format(prefix, j), request, values, errors, view, grid)|n}
             %endfor
         </div>
     %endfor
