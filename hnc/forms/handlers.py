@@ -25,7 +25,13 @@ class BaseHandler(object):
         self.request = request
         self.context = context
 
-
+    def __call__(self):
+        request = self.request
+        if request.is_xhr:
+            result = getattr(self, 'ajax{}'.format(request.method))(self.context, self.request)
+            return render_to_response("json", result, self.request)
+        else:
+            return getattr(self, request.method)(self.context, self.request)
 
 class ValidatedFormHandlerMetaClass(type):
     def __new__(cls, name, bases, dct):
@@ -38,7 +44,7 @@ class ValidatedFormHandlerMetaClass(type):
         return super(ValidatedFormHandlerMetaClass, cls).__new__(cls, name, bases, dct)
 
 
-class FormHandler(object):
+class FormHandler(BaseHandler):
     __metaclass__ = ValidatedFormHandlerMetaClass
 
     def __init__(self, context = None, request = None):
@@ -49,13 +55,7 @@ class FormHandler(object):
         self.result['values'].update([(k,{}) for k in self.schemas.keys()])
         self.result['errors'].update([(k,{}) for k in self.schemas.keys()])
 
-    def __call__(self):
-        request = self.request
-        if request.is_xhr:
-            result = getattr(self, 'ajax{}'.format(request.method))(self.context, self.request)
-            return render_to_response("json", result, self.request)
-        else:
-            return getattr(self, request.method)(self.context, self.request)
+
 
 
     def pre_fill_values(self, request, result):return result
