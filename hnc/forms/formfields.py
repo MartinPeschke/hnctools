@@ -14,11 +14,11 @@ class NullConfigModel(object):
     def getKey(self, request):return ''
     def getLabel(self, request):return '---'
 
-GridClasses = namedtuple('GridClasses', ['form_classes', 'control_group_classes', 'label_classes', 'controls_classes'])
-NO_GRID = GridClasses('form-validated', '', '', '')
-HORIZONTAL_GRID = GridClasses('form-validated form-horizontal', 'row', 'col col-lg-3', 'col col-lg-9')
+GridClasses = namedtuple('GridClasses', ['form_classes', 'control_group_classes', 'label_classes', 'controls_classes', 'input_classes'])
+NO_GRID = GridClasses('form-validated', '', '', '', '')
+HORIZONTAL_GRID = GridClasses('form-validated form-horizontal', 'row', 'col col-lg-3', 'col col-lg-9', '')
 
-
+HORIZONTAL_GRID_BS3 = GridClasses('form-validated form-horizontal', 'form-group', 'control-label col-lg-3', 'controls col-lg-9', 'form-control')
 
 
 class HtmlAttrs(object):
@@ -420,6 +420,7 @@ class TypeAheadField(StringField):
     template = 'hnc.forms:templates/typeahead.html'
     if_empty = ''
     classes = 'typeahead'
+    js_module = "libs/typeahead"
     def __init__(self, name, label, api_url, api_result, dependency = None, attrs = NONE, **kwargs):
         self.dependency = dependency
         self.api_result = api_result

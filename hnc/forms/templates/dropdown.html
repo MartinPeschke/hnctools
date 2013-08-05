@@ -2,7 +2,7 @@
 <%namespace name="lib" file="lib.html"/>
 
 <%block name="controls">
-    <select class="${widget.getClasses()}" name="${widget.getName(prefix)}" ${widget.attrs.getInputAttrs(request)|n}>
+    <select class="${grid.input_classes} ${widget.getClasses()}" name="${widget.getName(prefix)}" ${widget.attrs.getInputAttrs(request)|n}>
             %for option in widget.getOptions(request):
                 <option ${'selected' if widget.isSelected(option, value, request) else ''}
                         value="${option.getKey(request)}">${option.getLabel(request)}</option>

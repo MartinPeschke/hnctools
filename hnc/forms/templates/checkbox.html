@@ -2,5 +2,5 @@
 <%namespace name="lib" file="lib.html"/>
 
 <%block name="controls">
-    <input type="checkbox" name="${widget.getName(prefix)}" class="${widget.getClasses()}" value="${widget.value}" ${'checked' if value else ''} ${widget.attrs.getInputAttrs(request)|n}/>
+    <input type="checkbox" name="${widget.getName(prefix)}" class="${grid.input_classes} ${widget.getClasses()}" value="${widget.value}" ${'checked' if value else ''} ${widget.attrs.getInputAttrs(request)|n}/>
 </%block>

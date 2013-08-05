@@ -7,7 +7,7 @@
     <div data-closure="form" ${'data-required="true"' if widget.attrs.required else ''|n} class="repeatable-form">
         %for j, (values, errors) in enumerate(izip_longest(value or [{}], getattr(error, "error_list", [{}]), fillvalue = {})):
             <div class="${widget.getClasses()}" data-sequence="${j}">
-                <select class="${widget.getClasses()}" name="${widget.getName(prefix)}-${j}.name" ${widget.attrs.getInputAttrs(request)|n}>
+                <select class="${grid.input_classes} ${widget.getClasses()}" name="${widget.getName(prefix)}-${j}.name" ${widget.attrs.getInputAttrs(request)|n}>
                     %for option in widget.getOptions(request):
                         <option ${'selected' if widget.isSelected(option, value, request) else ''}
                                 value="${option.getKey(request)}">${option.getLabel(request)}</option>

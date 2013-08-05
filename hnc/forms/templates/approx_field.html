@@ -2,7 +2,7 @@
 <%namespace name="lib" file="lib.html"/>
 
 <%block name="controls">
-    <input type="${widget.type}" class="${widget.getClasses()}" name="${widget.getName(prefix)}" value="${value}"/>
+    <input type="${widget.type}" class="${grid.input_classes} ${widget.getClasses()}" name="${widget.getName(prefix)}" value="${value}"/>
     <label class="radio inline">
         ${widget.aprxLabel}
         <input type="checkbox" class="approx-append" name="${widget.getName(prefix, aprx = True)}" value="${widget.aprxDefault}" ${'checked' if valueIsApprox else '' } ${widget.attrs.getInputAttrs(request)|n}/>
