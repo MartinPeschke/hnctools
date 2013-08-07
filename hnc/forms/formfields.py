@@ -18,6 +18,7 @@ GridClasses = namedtuple('GridClasses', ['form_classes', 'control_group_classes'
 NO_GRID = GridClasses('form-validated', '', '', '', '')
 HORIZONTAL_GRID = GridClasses('form-validated form-horizontal', 'row', 'col col-lg-3', 'col col-lg-9', '')
 
+GRID_BS3 = GridClasses('form-validated', 'form-group', 'control-label', 'controls', 'form-control')
 HORIZONTAL_GRID_BS3 = GridClasses('form-validated form-horizontal', 'form-group', 'control-label col-lg-3', 'controls col-lg-9', 'form-control')
 
 
