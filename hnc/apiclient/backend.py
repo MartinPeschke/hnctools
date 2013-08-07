@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from httplib2 import Http
 import simplejson
 import logging
@@ -43,9 +44,11 @@ class RemoteProc(object):
     self.root_key    = root_key
     self.result_cls  = result_cls
     self.result_list = result_list
-  def __call__(self, backend, data = None, headers = {}):
+  def __call__(self, backend, data = None, headers = None):
+      headers = headers or {}
       return self.call(backend, data, headers)
-  def call(self, backend, data = None, headers = {}):
+  def call(self, backend, data = None, headers = None):
+      headers = headers or {}
       if isinstance(data, Mapping): data = data.unwrap(sparse = True)
       result = backend.query(url=self.remote_path, method=self.method, data=data, headers=headers)
       if self.root_key:
@@ -66,9 +69,10 @@ class AuthenticatedRemoteProc(RemoteProc):
     def __init__(self, remote_path, method, auth_extractor, root_key = None, result_cls = None, result_list = False):
         super(AuthenticatedRemoteProc, self).__init__(remote_path, method, root_key, result_cls, result_list)
         self.auth_extractor = auth_extractor
-    def __call__(self, request, data = None):
-        backend = request.backend
-        return self.call(backend, data, headers = self.auth_extractor(request))
+    def __call__(self, request, data = None, headers = None):
+        h = self.auth_extractor(request)
+        h.update(headers or {})
+        return self.call(request.backend, data, headers = h)
 
 
 
@@ -77,9 +81,9 @@ class AuthenticatedRemoteProc(RemoteProc):
 
 class Backend(object):
   standard_headers = {'Content-Type': 'application/json'}
-  def __init__(self, location, http_options = {}):
+  def __init__(self, location, http_options = None):
     self.location = location
-    self.http_options = http_options
+    self.http_options = http_options or {}
 
   def get_full_path(self, path):
     return path
@@ -114,10 +118,10 @@ class Backend(object):
 
       
 class VersionedBackend(Backend):
-  def __init__(self, location, version, http_options = {}):
+  def __init__(self, location, version, http_options = None):
     self.location = location
     self.version = version
-    self.http_options = http_options
+    self.http_options = http_options or {}
   def get_endpoint_url(self, path):
     return "{}/{}{}".format(self.location, self.version, path)
   def get_full_path(self, path):

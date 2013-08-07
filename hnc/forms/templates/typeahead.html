@@ -7,7 +7,7 @@
         ${'data-api-dependency="{}"'.format(widget.dependency) if widget.dependency else ''|n}
     >
     <div class="search-field">
-        <input type="text" class="query ${widget.getClasses()}" name="${widget.getName(prefix)}" value="${value}" autocomplete="off" ${widget.attrs.getInputAttrs(request)|n}/>
+        <input type="text" class="query ${grid.input_classes} ${widget.getClasses()}" name="${widget.getName(prefix)}" value="${value}" autocomplete="off" ${widget.attrs.getInputAttrs(request)|n}/>
     </div>
     </div>
 </%block>

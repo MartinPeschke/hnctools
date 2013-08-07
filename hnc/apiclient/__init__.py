@@ -506,8 +506,8 @@ class ListField(Field):
             else:
                 return self._toJSON(sparse = sparse)
 
-        def __init__(self, list, field):
-            self.list = list
+        def __init__(self, list_, field):
+            self.list = list_
             self.field = field
 
         def __lt__(self, other):
@@ -584,12 +584,12 @@ class ListField(Field):
         def count(self, value):
             return [i for i in self].count(value)
 
-        def extend(self, list):
-            for item in list:
+        def extend(self, list_):
+            for item in list_:
                 self.append(item)
 
-        def index(self, value):
-            return self.list.index(self.field._to_json(value))
+        def index(self, value, start=None, stop=None):
+            return self.list.index(self.field._to_json(value), start, stop)
 
         def insert(self, idx, *args, **kwargs):
             if args or not isinstance(self.field, DictField):

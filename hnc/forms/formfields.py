@@ -236,11 +236,11 @@ class Field(BaseField):
         params = self.getValues(self.name, request, values, errors, view)
         params.update({'widget': self, 'prefix':prefix, 'view': view, 'grid': grid})
         return render(self.template, params, request)
-    def renderControl(self, prefix, request, values, errors, view = None):
+    def renderControl(self, prefix, request, values, errors, view = None, grid = NO_GRID):
         if isinstance(errors, formencode.Invalid):
             errors = errors.error_dict
         params = self.getValues(self.name, request, values, errors, view)
-        params.update({'widget': self, 'prefix':prefix, 'view': view})
+        params.update({'widget': self, 'prefix':prefix, 'view': view, 'grid':grid})
 
         t = self.template.replace(".html", '#controls.html')
         return render(t, params, request)

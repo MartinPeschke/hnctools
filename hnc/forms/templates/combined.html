@@ -3,7 +3,7 @@
 
 <%block name="controls">
     %for field in widget.fields:
-        ${field.renderControl(prefix, request, value, error)|n}
+        ${field.renderControl(prefix, request, value, error, view, grid)|n}
     %endfor
 </%block>
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import simplejson
 from itertools import izip_longest
 from . import Mapping, TextField, BaseUnitField, IntegerField, PictureField, DictField, DateTimeField, TypedField
