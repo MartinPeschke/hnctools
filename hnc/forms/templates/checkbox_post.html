@@ -1,7 +1,7 @@
 <%namespace name="lib" file="lib.html"/>
 
 <div class="control-group ${grid.control_group_classes} ${widget.group_classes} ${widget.attrs.getGroupClasses()} ${'has-error' if error else ''}" ${widget.attrs.getGroupAttrs()|n}>
-    <div class="controls col col-lg-9 col-offset-3 ${widget.control_classes}">
+    <div class="controls ${widget.control_classes}">
         <label class="${widget.label_classes}">
             <input type="checkbox" name="${widget.getName(prefix)}" class="${widget.getClasses()}" value="${widget.value}" ${'checked' if value else ''} ${widget.attrs.getInputAttrs(request)|n}/>
             ${widget.getLabel(request)|n}

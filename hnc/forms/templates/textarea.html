@@ -2,5 +2,5 @@
 <%namespace name="lib" file="lib.html"/>
 
 <%block name="controls">
-    <textarea name="${widget.getName(prefix)}" id="${widget.getName(prefix)}" class="${widget.getClasses()}" ${widget.getInputAttrs(request)|n}>${value}</textarea>
+    <textarea name="${widget.getName(prefix)}" id="${widget.getName(prefix)}" class="${grid.input_classes} ${widget.getClasses()}" ${widget.getInputAttrs(request)|n}>${value}</textarea>
 </%block>
