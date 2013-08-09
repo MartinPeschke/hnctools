@@ -247,6 +247,23 @@ class Field(BaseField):
         return render(t, params, request)
 
 
+class WrapField(BaseField):
+    def __init__(self, tag = 'div', classes = '', *fields):
+        self.tag = tag
+        self.classes = classes
+        self.fields = fields
+
+    def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
+        return '<{0.tag} class="{0.classes}">{1}</{0.tag}>'.format(self, ''.join([methodcaller("render", prefix, request, values, errors, view, grid), self.fields]))
+
+    def getValidator(self, request):
+        validators = {}
+        for v in self.fields:
+            if v.is_validated:
+                validators = dict_merge(validators, v.getValidator(request))
+        return validators
+
+
 
 class MultipleFormField(Field):
     __metaclass__ = BaseFormMeta
