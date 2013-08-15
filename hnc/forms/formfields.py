@@ -22,6 +22,14 @@ GRID_BS3 = GridClasses('form-validated', 'form-group', 'control-label', 'control
 HORIZONTAL_GRID_BS3 = GridClasses('form-validated form-horizontal', 'form-group', 'control-label col-lg-3', 'controls col-lg-9', 'form-control')
 
 
+def normalize_key(k):
+    return k.replace("_", "-")
+
+def attrsStringify(attrs, keyMod = None, valMod = None):
+    return ' '.join(['{}="{}"'.format(k, v) for k,v in attrs])
+
+
+
 class HtmlAttrs(object):
     classes = ''
     def __init__(self, required = False, important = False, placeholder = '', **attrs):
@@ -38,7 +46,7 @@ class HtmlAttrs(object):
         return classes
     def getInputAttrs(self, request):
         _ = request._
-        return " ".join([u'{}="{}"'.format(k.replace("_", "-"),_(v)) for k,v in self.attrs.items()])
+        return attrsStringify([(normalize_key(k), _(v)) for k,v in self.attrs.items()])
 
     def getGroupAttrs(self): return ''
     getGroupClasses = getClasses
@@ -123,17 +131,23 @@ class BaseForm(object):
 
     @classmethod
     def getSchema(cls, request, values):
+        pre_validators = cls.pre_validators
+        chained_validators = cls.chained_validators
+
         validators = {}
+
         for v in cls.fields:
             if v.is_validated:
-                validators = dict_merge(validators, v.getValidator(request))
+                val = v.getValidator(request)
+                if isinstance(val, formencode.Schema):
+                    pre_validators += val.pre_validators
+                    chained_validators += val.chained_validators
+                    val = val.fields
+
+                validators = dict_merge(validators, val)
         for form in cls.extra_forms:
             validators[form.id] = form.getSchema(request)
-        validators['pre_validators'] = cls.pre_validators
-        validators['chained_validators'] = cls.chained_validators
-        return BaseSchema(**validators)
-
-
+        return BaseSchema(chained_validators=chained_validators, pre_validators=pre_validators, **validators)
 
 
 
@@ -248,6 +262,7 @@ class Field(BaseField):
 
 
 class WrapField(BaseField):
+    is_validated = True
     def __init__(self, tag = 'div', classes = '', *fields):
         self.tag = tag
         self.classes = classes
@@ -281,10 +296,18 @@ class MultipleFormField(Field):
 
     def getValidator(self, request):
         validators = {}
+        pre_validators = []
+        chained_validators = []
         for v in self.fields:
             if v.is_validated:
-                validators = dict_merge(validators, v.getValidator(request))
-        return {self.name : formencode.ForEach(BaseSchema(**validators), not_empty = self.attrs.required, convert_to_list = True, if_empty = None)}
+                val = v.getValidator(request)
+                if isinstance(val, formencode.Schema):
+                    pre_validators += val.pre_validators
+                    chained_validators += val.chained_validators
+                    val = val.fields
+
+                validators = dict_merge(validators, val)
+        return {self.name : formencode.ForEach(BaseSchema(pre_validators=pre_validators, chained_validators=chained_validators, **validators), not_empty = self.attrs.required, convert_to_list = True, if_empty = None)}
 
     def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
         name = self.name

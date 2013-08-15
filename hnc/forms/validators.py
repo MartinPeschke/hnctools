@@ -9,60 +9,24 @@ from operator import methodcaller
 import logging
 log = logging.getLogger(__name__)
 
-
-
 _ = lambda s: s
 
 
-class FormHeading(object):
-    structure = "heading"
-    def __init__(self, html_label, tag = 'legend', classes = '', field_names = None):
-        self.html_label = html_label
-        self.tag = tag
-        self.classes = classes
-        if isinstance(field_names, basestring):
-            self.field_names = {field_names:field_names}
-        elif isinstance(field_names, list):
-            self.field_names = {name:name for name in field_names}
-        else:
-            self.field_names = field_names
-
-    def getLabel(self, values):
-        if self.field_names:
-            return self.html_label.format(**{k:values.get(v) for k,v in self.field_names.items()})
-        else:
-            return self.html_label
-
-class FormSection(object):
-  structure = "layout"
-  def __init__(self, form_order, tag = 'div', classes = 'view-set'):
-    self.tag = tag
-    self.classes = classes
-    self.form_order = form_order
-  
-class CustomFormElement(object):
-  structure = "widget"
-  def __init__(self, widget):
-    self.widget = widget
-  
-class CombinedElement(object):
-    structure = "combined"
-    suppress_label = False
-    inline_label = True
-    def __init__(self, elements, html_label = None, **kwargs):
-        self.html_label = html_label
-        self.elements = elements
+class Choice(object):
+    def __init__(self, key, label, **kwargs):
+        self.label = label
+        self.key = key
         for k,v in kwargs.items():
             setattr(self, k, v)
 
-    def showOutsideLabel(self):
-        return not (self.suppress_label or self.inline_label)
-    def getFields(self, schema):
-        return [schema.fields[field] for field in self.elements]
-    def getErrors(self, errors):
-        return filter(None, [errors.get(f) for f in self.elements])
-    def required(self, schema):
-        return len(filter(None, [getattr(f, "required", None) for f in self.getFields(schema)])) > 0
+    def getKey(self, state = None):
+        return self.key or ''
+    def getValue(self, state = None):
+        return self.label
+    getLabel = getValue
+
+
+
 
 class SanitizedHTMLString(formencode.validators.String):
   messages = {"invalid_format":'There was some error in your HTML!'}
@@ -92,19 +56,7 @@ class SanitizedHTMLString(formencode.validators.String):
       log.error("HTML_SANITIZING_ERROR %s", value)
       raise formencode.Invalid(self.message("invalid_format", state, value = value), value, state)
 
-class Choice(object):
-    def __init__(self, key, label, **kwargs):
-        self.label = label
-        self.key = key
-        for k,v in kwargs.items():
-            setattr(self, k, v)
 
-    def getKey(self, state = None):
-        return self.key or ''
-    def getValue(self, state = None):
-        return self.label
-    getLabel = getValue
-      
 class OneOfChoice(formencode.validators.OneOf):
     custom_attribute = 'custom'
     tabindex=5
@@ -231,6 +183,7 @@ class OneOfState(formencode.validators.OneOf):
           return custom if is_custom else val
 
     validate_python = formencode.FancyValidator._validate_noop
+
 class OneOfStateNoCustom(OneOfState):
     def hasCustom(self, req):
         return False
@@ -242,6 +195,7 @@ class OneOfStateInt(OneOfState):
             return int(value)
         except:
             raise Invalid(self.message('invalid', state), value, state)
+
 
 
 class DateValidator(formencode.FancyValidator):
@@ -264,7 +218,14 @@ class DateValidator(formencode.FancyValidator):
     except ValueError, e:
       raise formencode.Invalid(self.message("badFormat", state, format = self.format.replace('%d', 'dd').replace('%m', 'mm').replace('%Y', 'yyyy')), value, state)
     else: return value
-      
+
+
+
+
+
+
+
+
 class DecimalValidator(formencode.FancyValidator):
   is_number_validator = True
   step = 0.01
@@ -290,6 +251,7 @@ class DecimalValidator(formencode.FancyValidator):
     else: return value
 
 
+
 def TypeAheadValidator(attrs):
     if attrs.required:
         validator = formencode.validators.String(required = True)
@@ -299,6 +261,45 @@ def TypeAheadValidator(attrs):
 
 
 
+# Compound Form Validators
+
+class LessThanEach(formencode.validators.FormValidator):
+    field_names = None
+    validate_partial_form = True
+    format_ref = lambda s:s
+    __unpackargs__ = ('*', 'field_names')
+
+    messages = dict(
+        notLess=_('Field should be greater than %(ref)s'),
+        notDict=_('Fields should be a dictionary')
+        )
+
+    def __init__(self, *args, **kw):
+        super(LessThanEach, self).__init__(*args, **kw)
+        if len(self.field_names) < 2:
+            raise TypeError('FieldsMatch() requires at least two field names')
+
+    def _to_python(self, field_dict, state):
+        try:
+            errors = {}
+            for i in xrange(1, len(self.field_names)):
+
+                name = self.field_names[i]
+                val = field_dict[name]
+                lastVal = field_dict[self.field_names[i-1]]
+
+                if lastVal >= val:
+                    errors[name] = self.message('notLess', state, ref=self.format_ref(lastVal))
+
+        except TypeError:
+            # Generally because field_dict isn't a dict
+            raise formencode.Invalid(self.message('notDict', state), field_dict, state)
+        if errors:
+            error_list = errors.items()
+            error_list.sort()
+            error_message = '<br>\n'.join(
+                ['%s: %s' % (name, value) for name, value in error_list])
+            raise formencode.Invalid(error_message, field_dict, state, error_dict=errors)
 
 class SettlementValidator(formencode.validators.FormValidator):
     settlementOption = 'settlementOption'
