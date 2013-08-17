@@ -137,7 +137,7 @@ class BaseForm(object):
         validators = {}
 
         for v in cls.fields:
-            if v.is_validated:
+            if v and v.is_validated:
                 val = v.getValidator(request)
                 if isinstance(val, formencode.Schema):
                     pre_validators += val.pre_validators
@@ -274,7 +274,7 @@ class WrapField(BaseField):
     def getValidator(self, request):
         validators = {}
         for v in self.fields:
-            if v.is_validated:
+            if v and v.is_validated:
                 validators = dict_merge(validators, v.getValidator(request))
         return validators
 
@@ -299,7 +299,7 @@ class MultipleFormField(Field):
         pre_validators = []
         chained_validators = []
         for v in self.fields:
-            if v.is_validated:
+            if v and v.is_validated:
                 val = v.getValidator(request)
                 if isinstance(val, formencode.Schema):
                     pre_validators += val.pre_validators
@@ -326,7 +326,7 @@ class SubForm(Field):
     def getValidator(self, request):
         validators = {}
         for v in self.fields:
-            if v.is_validated:
+            if v and v.is_validated:
                 validators = dict_merge(validators, v.getValidator(request))
         return {self.name : BaseSchema(**validators)}
 
@@ -528,23 +528,6 @@ class TokenTypeAheadField(StringField):
     def getValues(self, name, request, values, errors, view):
         return {'value': deep_get(values, name, {}), 'error':deep_get(errors, name, {})}
 
-
-
-
-class FileUploadField(Field):
-    template = 'hnc.forms:templates/fileupload.html'
-    if_empty = {}
-    def __init__(self, name, classes = 'form-embedded-wrapper'):
-        self.name = name
-        self.classes = classes
-    def getClasses(self):
-        return self.classes
-    def getValidator(self, request):
-        return deep_dict(self.name, formencode.ForEach(BaseSchema(file = formencode.validators.String(), name=formencode.validators.String()), not_empty = self.attrs.required))
-
-    TYPES = {'IMAGE': "jpg,gif,png", 'OTHER': "*.*"}
-    def getFileTypes(self, dt):
-        return self.TYPES.get(dt.name, 'DISABLED')
 
 
 
