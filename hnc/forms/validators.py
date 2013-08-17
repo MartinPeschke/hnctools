@@ -279,28 +279,28 @@ class LessThanEach(formencode.validators.FormValidator):
         if len(self.field_names) < 2:
             raise TypeError('FieldsMatch() requires at least two field names')
 
-    def _to_python(self, field_dict, state):
+    def _to_python(self, value_dict, state):
         try:
             errors = {}
             for i in xrange(1, len(self.field_names)):
 
                 name = self.field_names[i]
-                val = field_dict[name]
-                lastVal = field_dict[self.field_names[i-1]]
+                val = value_dict[name]
+                lastVal = value_dict[self.field_names[i-1]]
 
-                if lastVal >= val:
+                if lastVal and val and lastVal >= val:
                     errors[name] = self.message('notLess', state, ref=self.format_ref(lastVal))
 
         except TypeError:
             # Generally because field_dict isn't a dict
-            raise formencode.Invalid(self.message('notDict', state), field_dict, state)
+            raise formencode.Invalid(self.message('notDict', state), value_dict, state)
         if errors:
             error_list = errors.items()
             error_list.sort()
             error_message = '<br>\n'.join(
                 ['%s: %s' % (name, value) for name, value in error_list])
-            raise formencode.Invalid(error_message, field_dict, state, error_dict=errors)
-
+            raise formencode.Invalid(error_message, value_dict, state, error_dict=errors)
+        return value_dict
 
 
 
