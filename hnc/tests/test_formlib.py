@@ -3,7 +3,7 @@ from random import sample
 import unittest
 from BeautifulSoup import BeautifulSoup
 from pyramid import testing
-from hnc.forms.formfields import ChoiceField, MultipleFormField, StringField, DateField, Field, REQUIRED, HtmlAttrs
+from hnc.forms.formfields import ChoiceField, MultipleFormField, StringField, DateField, Field, REQUIRED, HtmlAttrs, GRID_BS3
 
 
 class DummyNamedModel(object):
@@ -39,6 +39,9 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
 
     #Base Field Classes
 
+    test_grid = GRID_BS3
+
+
     def test_field_all_classes(self):
         output = BeautifulSoup(Field('name', 'label', input_classes="INPUT_CLASS", control_classes="CONTROLS_CLASS", group_classes="GROUP_CLASS").render("FORM", DummyRequest(), {}, {}))
         self.assertTrue('GROUP_CLASS' in output.div['class'])
@@ -46,9 +49,10 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
         self.assertTrue('INPUT_CLASS' in output.div.div.input['class'])
 
     def test_field_attrs_required(self):
-        output = BeautifulSoup(Field('name', 'label', attrs = REQUIRED).render("FORM", DummyRequest(), {}, {}))
+
+        output = BeautifulSoup(Field('name', 'label', attrs = REQUIRED).render("FORM", DummyRequest(), {}, {}, grid = self.test_grid))
         self.assertEqual(output.find('input', 'required')['name'], "FORM.name")
-        self.assertTrue("required" in output.find('div', 'control-group')['class'])
+        self.assertTrue("required" in output.find('div', self.test_grid.control_group_classes)['class'])
 
     def test_field_attrs_placeholder(self):
         output = BeautifulSoup(Field('name', 'label', attrs = HtmlAttrs(placeholder="REAL_PLACEHOLDER"), input_classes="SUPER_CLASS").render("FORM", DummyRequest(), {}, {}))
@@ -78,23 +82,23 @@ class TestSimpleTemplatesFunctions(unittest.TestCase):
 
     # Multi Form
 
-    def _get_multi_form(self, values = {}, errors = {}):
+    def _get_multi_form(self, values = {}, errors = {}, grid = None):
         class Field(MultipleFormField):
             fields = [ StringField("enrolled", "Enrolled"), StringField("graduated", "Graduated") ]
-        return BeautifulSoup(Field('VALUE', None).render("FORM", DummyRequest(), values, errors))
+        return BeautifulSoup(Field('VALUE', None).render("FORM", DummyRequest(), values, errors, grid = grid or self.test_grid))
 
     def test_multi_form(self):
         form = self._get_multi_form()
-        self.assertEqual(len(form.div.findAll("div", 'control-group')), 2)
+        self.assertEqual(len(form.div.findAll("div", self.test_grid.control_group_classes)), 2)
         self.assertEqual(len(form.div.findAll("label")), 2)
 
     def test_multi_form_with_one_value(self):
         form = self._get_multi_form({"VALUE":[{'enrolled':2}]})
-        self.assertEqual(len(form.div.findAll("div", 'control-group')), 2)
+        self.assertEqual(len(form.div.findAll("div", self.test_grid.control_group_classes)), 2)
 
     def test_multi_form_with_many_values(self):
         form = self._get_multi_form({"VALUE":[{'enrolled':2}]*8})
-        self.assertEqual(len(form.div.findAll("div", 'control-group')), 16)
+        self.assertEqual(len(form.div.findAll("div", self.test_grid.control_group_classes)), 16)
 
 
     # DateFields
