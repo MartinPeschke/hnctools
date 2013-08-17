@@ -515,6 +515,7 @@ class TagSearchField(StringField):
 class TokenTypeAheadField(StringField):
     template = 'hnc.forms:templates/typeahead_token.html'
     classes = 'typeahead'
+    js_module = "libs/typeahead"
     def __init__(self, name, label, api_url, api_result, dependency = None, attrs = NONE, **kwargs):
 
         super(TokenTypeAheadField, self).__init__(name, label, attrs, **kwargs)
