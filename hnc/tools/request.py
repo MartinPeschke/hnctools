@@ -43,11 +43,15 @@ def ajax_url(request, route_name, secure = False, escaped = {}, *args, **kwargs)
         url = url.replace(urllib.quote(token), escaped[key])
     return url
 
+
+def redirect_response(location):
+    return Response("Resource Found!", 302, headerlist = [('location', location)])
+
 def jsonAwareRedirectView(exc, request):
     if request.is_xhr:
         response = Response(simplejson.dumps({'redirect': exc.location}), 200, content_type = 'application/json')
     else:
-        response = Response("Resource Found!", 302, headerlist = [('location', exc.location)])
+        response = redirect_response(exc.lcation)
     return response
 
     

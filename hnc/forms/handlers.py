@@ -9,6 +9,8 @@ from pyramid.renderers import render_to_response
 from hnc.forms.messages import GenericErrorMessage, GenericSuccessMessage
 
 import logging
+from hnc.tools.request import redirect_response
+
 log = logging.getLogger(__name__)
 
 
@@ -50,13 +52,10 @@ class FormHandler(BaseHandler):
     def __init__(self, context = None, request = None):
         self.request = request
         self.context = context
-        self.result = {'values':{}, 'errors':{}, 'schemas' : self.schemas, 'formencode':formencode}
+        self.result = {'values':{}, 'errors':{}, 'schemas' : self.schemas}
         ### generate groups error/value groups for each schema
         self.result['values'].update([(k,{}) for k in self.schemas.keys()])
         self.result['errors'].update([(k,{}) for k in self.schemas.keys()])
-
-
-
 
     def pre_fill_values(self, request, result):return result
     def add_globals(self, request, result):return result
@@ -97,7 +96,8 @@ class FormHandler(BaseHandler):
                 elif resp.get('success') == False:
                     self.request.session.flash(GenericErrorMessage(resp.get('message')), 'generic_messages')
             if resp.get('redirect'):
-                self.request.fwd_raw(resp.get('redirect'))
+                # cannot be redirect exception inside an exception view
+                return redirect_response(resp.get('redirect'))
 
             self.result['values'][schema_id] = resp.get('values', values)
             self.result['errors'][schema_id] = resp.get('errors', {})

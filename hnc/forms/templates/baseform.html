@@ -7,7 +7,7 @@
 
 
 <%def name="prelims(form)">
-    <input type="hidden" name="type" value="${form.id}"/>
-    <input type="hidden" name="token" value="${request.session.get_csrf_token()}"/>
-    <input type="hidden" name="furl" value="${request.furl}"/>
+    <input type="hidden" name="type" value="${form.id}" class="ignore"/>
+    <input type="hidden" name="token" value="${request.session.get_csrf_token()}" class="ignore"/>
+    <input type="hidden" name="furl" value="${request.furl}" class="ignore"/>
 </%def>
