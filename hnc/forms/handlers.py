@@ -94,7 +94,7 @@ class FormHandler(BaseHandler):
                 if resp.get('success') == True:
                     self.request.session.flash(GenericSuccessMessage(resp.get('message')), 'generic_messages')
                 elif resp.get('success') == False:
-                    self.request.session.flash(GenericErrorMessage(resp.get('message')), 'generic_messages')
+                        self.request.session.flash(GenericErrorMessage(resp.get('message')), 'generic_messages')
             if resp.get('redirect'):
                 # cannot be redirect exception inside an exception view
                 return redirect_response(resp.get('redirect'))
