@@ -35,6 +35,10 @@ class BaseHandler(object):
         else:
             return getattr(self, request.method)(self.context, self.request)
 
+    def GET(self, context, request):
+        return {}
+
+
 class ValidatedFormHandlerMetaClass(type):
     def __new__(cls, name, bases, dct):
         if 'schemas' not in dct:

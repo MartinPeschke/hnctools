@@ -131,8 +131,8 @@ class BaseForm(object):
 
     @classmethod
     def getSchema(cls, request, values):
-        pre_validators = cls.pre_validators
-        chained_validators = cls.chained_validators
+        pre_validators = list(cls.pre_validators)
+        chained_validators = list(cls.chained_validators)
 
         validators = {}
 
