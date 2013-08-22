@@ -15,8 +15,7 @@ def fwd_raw(request, location):
 
 def rld(request, with_query = True, *args, **kwargs):
     raise JsonAwareRedirect(location = request.rld_url(with_query, *args, **kwargs))
-def fwd(request, route_name, *args, **kwargs):
-    raise JsonAwareRedirect(location = request.fwd_url(route_name, *args, **kwargs))
+
 
 def ajax_url(request, route_name, secure = False, escaped = {}, *args, **kwargs):
     """
@@ -81,11 +80,13 @@ def extend_request_dispatch(config):
             return request.route_url(route_name, _scheme = request.globals.secure_scheme, *args, **kwargs)
         else:
             return request.route_url(route_name, _scheme = "http", *args, **kwargs)
+    def fwd(request, route_name, *args, **kwargs):
+        raise JsonAwareRedirect(location = request.fwd_url(route_name, *args, **kwargs))
 
     config.add_request_method(rld_url)
     config.add_request_method(rld)
-    config.add_request_method(fwd)
     config.add_request_method(fwd_url)
+    config.add_request_method(fwd)
     config.add_request_method(ajax_url)
 
     config.add_view(jsonAwareRedirectView, context=JsonAwareRedirect, permission = NO_PERMISSION_REQUIRED)
@@ -97,18 +98,15 @@ def extend_request_traversal(config):
 
     def rld_url_traverse(request, *args, **kwargs):
         return request.resource_url(request.context, *args, **kwargs)
-    def fwd_url_traverse(request, ctxt, secure = None, *args, **kwargs):
-        if secure is None:
-            secure = request.scheme == 'https'
-        if secure:
-            return request.resource_url(ctxt, _scheme = request.globals.secure_scheme, *args, **kwargs)
-        else:
-            return request.resource_url(ctxt, _scheme = "http", *args, **kwargs)
+    def fwd_url_traverse(request, ctxt, *args, **kwargs):
+        return request.resource_url(ctxt, *args, **kwargs)
+    def fwd_traverse(request, ctxt, *args, **kwargs):
+        raise JsonAwareRedirect(location = request.fwd_url(ctxt, *args, **kwargs))
 
     config.add_request_method(rld_url_traverse, "rld_url")
     config.add_request_method(rld)
-    config.add_request_method(fwd)
     config.add_request_method(fwd_url_traverse, name="fwd_url")
+    config.add_request_method(fwd_traverse, 'fwd')
     config.add_request_method(ajax_url)
 
     config.add_view(jsonAwareRedirectView, context=JsonAwareRedirect, permission = NO_PERMISSION_REQUIRED)
