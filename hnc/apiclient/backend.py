@@ -28,10 +28,7 @@ class DateAwareEncoder(simplejson.JSONEncoder):
         return simplejson.JSONEncoder.default(self, obj)
 
 
-def ClientTokenProc(path, root_key = None, result_cls = None, method = "POST", result_list = False):
-    def auth_extractor(request):
-        return {'Client-Token':request.root.settings.clientToken}
-    return AuthenticatedRemoteProc(path, method, auth_extractor, root_key, result_cls, result_list)
+
 
 
 
@@ -65,6 +62,7 @@ class RemoteProc(object):
         else:
           return self.result_cls.wrap(result)
 
+
 class AuthenticatedRemoteProc(RemoteProc):
     def __init__(self, remote_path, method, auth_extractor, root_key = None, result_cls = None, result_list = False):
         super(AuthenticatedRemoteProc, self).__init__(remote_path, method, root_key, result_cls, result_list)
@@ -75,7 +73,10 @@ class AuthenticatedRemoteProc(RemoteProc):
         return self.call(request.backend, data, headers = h)
 
 
-
+def ClientTokenProc(path, root_key = None, result_cls = None, method = "POST", result_list = False):
+    def auth_extractor(request):
+        return {'Client-Token':request.root.settings.clientToken}
+    return AuthenticatedRemoteProc(path, method, auth_extractor, root_key, result_cls, result_list)
 
 
 

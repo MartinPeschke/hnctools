@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.1.29'
+version = '0.1.30'
 
 
 tests_require = [
@@ -34,7 +34,7 @@ setup(name='hnc',
       zip_safe=True,
       install_requires=[
           # -*- Extra requirements: -*-
-        "babel", "pyramid", "simplejson", "httplib2", "formencode", "lxml", "beautifulsoup"
+        "babel", "pyramid", "simplejson", "httplib2", "formencode", "lxml", "beautifulsoup", "polib"
       ],
       entry_points="""
       # -*- Entry points: -*-
