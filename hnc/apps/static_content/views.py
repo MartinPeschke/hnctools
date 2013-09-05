@@ -2,7 +2,7 @@ import polib
 from pyramid.path import AssetResolver
 from hnc.apiclient import Mapping, TextField, ListField, DictField
 from hnc.apiclient.cached import CachedLoader
-from hnc.forms.formfields import BaseForm, MultipleFormField, REQUIRED, StringField, TextareaField, GRID_BS3, HtmlAttrs
+from hnc.forms.formfields import BaseForm, MultipleFormField, IMPORTANT, StringField, TextareaField, GRID_BS3, HtmlAttrs, REQUIRED
 from hnc.forms.handlers import FormHandler
 from hnc.forms.layout import BS3_NCOL
 from hnc.forms.messages import GenericSuccessMessage
@@ -32,7 +32,7 @@ class StaticContentLoader(object):
         result = self.content.get(key, key)
         if isinstance(result, basestring):
             return result.format(kwargs)
-        return result
+        return result or ''
 
 
 
@@ -58,7 +58,7 @@ def add_content(dictionary_factory, instance_name):
 CONTENT_FIELDS = [
             MultipleFormField('values', fields = [BS3_NCOL(
                     StringField('key', "Key", REQUIRED)
-                    , TextareaField('value', "Full HTML", attrs = HtmlAttrs(required = True, rows = 8))
+                    , TextareaField('value', "Full HTML", attrs = HtmlAttrs(important = True, rows = 8))
                 )], add_more_link_label='Add More Fields'
             )
         ]
@@ -102,7 +102,7 @@ def ContentEditViewFactory(SetStaticContentProc):
     class ContentEditForm(BaseForm):
         label = "Edit Content"
         grid = GRID_BS3
-        fields = [TextareaField('value', "Full HTML", attrs = HtmlAttrs(required = True, rows = 8))]
+        fields = [TextareaField('value', "Full HTML", attrs = HtmlAttrs(important = True, rows = 8), if_empty = '')]
 
         @classmethod
         def cancel_url(cls, request):
@@ -121,7 +121,7 @@ def ContentEditViewFactory(SetStaticContentProc):
     class ContentEditHandler(FormHandler):
         form = ContentEditForm
         def pre_fill_values(self, request, result):
-            result['values'][self.form.id] = request.context.content.unwrap()
+            result['values'][self.form.id] = request.context.content.unwrap(sparse = True)
             return super(ContentEditHandler, self).pre_fill_values(request, result)
     return ContentEditHandler
 
