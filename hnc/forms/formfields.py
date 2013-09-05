@@ -1,5 +1,5 @@
 from datetime import datetime
-from operator import methodcaller
+from operator import methodcaller, attrgetter
 import formencode
 from formencode.validators import OneOf
 from hnc.forms.validators import TypeAheadValidator, DateValidator
@@ -194,6 +194,7 @@ class Field(BaseField):
     template = 'hnc.forms:templates/basefield.html'
     is_validated = True
     if_empty = ''
+    default = ''
     min = None
     max = None
     type = 'text'
@@ -243,7 +244,7 @@ class Field(BaseField):
         return  '{} {}'.format(self.input_classes, self.attrs.getClasses())
 
     def getValues(self, name, request, values, errors, view):
-        return {'value': deep_get(values, name, self.if_empty), 'error':deep_get(errors, name, self.if_empty)}
+        return {'value': deep_get(values, name, self.default), 'error':deep_get(errors, name, self.if_empty)}
 
     def render(self, prefix, request, values, errors, view = None, grid = NO_GRID):
         if isinstance(errors, formencode.Invalid):

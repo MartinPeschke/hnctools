@@ -176,6 +176,6 @@ def set_up_content_mgmt_app(config, potfile_asset_spec, dictionary_factory):
     config.add_subscriber(add_content(dictionary_factory, potfile_asset_spec), 'pyramid.events.ContextFound')
     config.add_subscriber(add_renderer_variables, 'pyramid.events.BeforeRender')
 
-    return polib.pofile(asset_path.abspath())
+    return lambda: polib.pofile(asset_path.abspath())
 
 
