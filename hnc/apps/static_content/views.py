@@ -31,7 +31,7 @@ class StaticContentLoader(object):
     def __call__(self, key, **kwargs):
         result = self.content.get(key, key)
         if isinstance(result, basestring):
-            return result.format(kwargs)
+            return result.format(**kwargs)
         return result or ''
 
 
