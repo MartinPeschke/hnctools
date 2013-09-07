@@ -240,6 +240,8 @@ class Field(BaseField):
         return request._(self.label)
     def getName(self, prefix):
         return '{}.{}'.format(prefix, self.name)
+    def getElemId(self, prefix):
+        return self.getName(prefix).replace(".","-")
     def getClasses(self):
         return  '{} {}'.format(self.input_classes, self.attrs.getClasses())
 
