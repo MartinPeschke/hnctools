@@ -98,13 +98,16 @@ def extend_request_traversal(config):
 
     def rld_url_traverse(request, *args, **kwargs):
         return request.resource_url(request.context, *args, **kwargs)
+    def rld_traverse(request, *args, **kwargs):
+        raise JsonAwareRedirect(location = request.rld_url(*args, **kwargs))
+
     def fwd_url_traverse(request, ctxt, *args, **kwargs):
         return request.resource_url(ctxt, *args, **kwargs)
     def fwd_traverse(request, ctxt, *args, **kwargs):
         raise JsonAwareRedirect(location = request.fwd_url(ctxt, *args, **kwargs))
 
     config.add_request_method(rld_url_traverse, "rld_url")
-    config.add_request_method(rld)
+    config.add_request_method(rld_traverse, "rld")
     config.add_request_method(fwd_url_traverse, name="fwd_url")
     config.add_request_method(fwd_traverse, 'fwd')
     config.add_request_method(ajax_url)
