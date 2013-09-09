@@ -1,10 +1,6 @@
 <%namespace name="lib" file="lib.html"/>
 <div class="${grid.control_group_classes} ${widget.group_classes} ${widget.attrs.getGroupClasses()} ${'has-error' if error else ''}" ${widget.attrs.getGroupAttrs()|n}>
-    %if widget.hasLabel():
-        <label class="${widget.label_classes} ${grid.label_classes}">
-            ${widget.getLabel(request)}
-        </label>
-    %endif
+    ${self.label(widget, grid)}
     <div class="${widget.control_classes} ${grid.controls_classes}">
         <%block name="controls">
             <input type="${widget.type}" class="${grid.input_classes} ${widget.getClasses()}" name="${widget.getName(prefix)}" id="${widget.getName(prefix)}" value="${widget.valueToForm(value)}" ${widget.getInputAttrs(request)|n}/>
@@ -15,4 +11,12 @@
 
 <%def name="renderInline(widget, error)">
     ${lib.renderInline(widget, error)}
+</%def>
+
+<%def name="label(widget, grid)">
+    %if widget.hasLabel():
+        <label class="${widget.label_classes} ${grid.label_classes}">
+            ${widget.getLabel(request)}
+        </label>
+    %endif
 </%def>

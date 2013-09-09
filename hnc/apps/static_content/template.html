@@ -22,11 +22,16 @@
                                 <option value="{{page}}" ng-repeat="page in pages">{{page}}</option>
                             </select>
                             <label ng-show="unusedKeys">
-                                <input type="checkbox" ng-model="queryUnused" value="true"> Show Unused Content only
+                                <input type="checkbox" ng-model="queryUnused" value="true"> Show unused content only
                             </label>
                         </div>
                         <div class="col-lg-2"><input type="text" ng-model="queryName" class="search-query form-control" placeholder="Search by Key"></div>
-                        <div class="col-lg-6"><input type="text" ng-model="queryContent" class="search-query form-control" placeholder="Search by Content"></div>
+                        <div class="col-lg-6">
+                            <input type="text" ng-model="queryContent" class="search-query form-control" placeholder="Search by Content">
+                            <label  >
+                                <input type="checkbox" ng-model="queryEmpty" value="true"> Show empty contents only
+                            </label>
+                        </div>
                     </div>
                     <div class="row list-group-item" ng-repeat="content in contents | filter:query | orderBy:'key'">
                         <div class="col-lg-4"><strong>{{content.key}}</strong>
