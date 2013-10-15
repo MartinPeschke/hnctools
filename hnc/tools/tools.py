@@ -11,7 +11,6 @@ import simplejson
 def remove_chars(refstr, chars):
     return ''.join([ c for c in refstr if c not in chars])
 
-
 def zigzag(map, pred, mod):
     t1,t2 = itertools.tee(map.iteritems())
     even = itertools.imap(mod, itertools.ifilter(pred, t1))
@@ -20,6 +19,27 @@ def zigzag(map, pred, mod):
 def split_list(list, pred):
     t1,t2 = itertools.tee(list)
     return itertools.ifilter(pred, t1), itertools.ifilterfalse(pred, t2)
+
+def compose(func_1, func_2, unpack=False):
+    """
+    compose(func_1, func_2, unpack=False) -> function
+
+    The function returned by compose is a composition of func_1 and func_2.
+    That is, compose(func_1, func_2)(5) == func_1(func_2(5))
+    """
+    if not callable(func_1):
+        raise TypeError("First argument to compose must be callable")
+    if not callable(func_2):
+        raise TypeError("Second argument to compose must be callable")
+
+    if unpack:
+        def composition(*args, **kwargs):
+            return func_2(*func_1(*args, **kwargs))
+    else:
+        def composition(*args, **kwargs):
+            return func_2(func_1(*args, **kwargs))
+    return composition
+
 
 class DateAwareJSONEncoder(simplejson.JSONEncoder):
     """

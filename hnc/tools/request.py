@@ -1,6 +1,8 @@
 import urllib, logging, simplejson
 from pyramid.response import Response
 from pyramid.security import NO_PERMISSION_REQUIRED
+from operator import attrgetter, itemgetter
+from hnc.tools.tools import compose
 
 log = logging.getLogger(__name__)
 
@@ -41,7 +43,6 @@ def jsonAwareRedirectView(exc, request):
     return response
 
 
-
 def extend_request_basic(config):
     """
     set up request properties universal for all apps
@@ -54,13 +55,9 @@ def extend_request_basic(config):
         except ValueError, e:
             return request.params.get("furl") or request.path_qs
     config.add_request_method(furl, 'furl', reify=True)
-
-    def globals(request):
-        return request.registry.settings["g"]
-    config.add_request_method(globals, 'globals', reify=True)
-    def backend(request):
-        return request.globals.backend
-    config.add_request_method(backend, 'backend', reify=True)
+    def app_globals(request): return request.registry.settings['g']
+    config.add_request_method(app_globals, 'globals', reify=True)
+    config.add_request_method(attrgetter("globals.backend"), 'backend', reify=True)
     config.add_request_method(fwd_raw)
 
 

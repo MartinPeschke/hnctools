@@ -2,7 +2,7 @@
     from itertools import izip_longest
 %>
 
-<div data-closure="form" ${'data-required="true"' if widget.attrs.required else ''|n} class="repeatable-form" ${'data-prepend="true"' if widget.prepend else ''} data-append-target=".${widget.appendTarget}">
+<div data-closure="form" ${'data-required="true"' if widget.attrs.required else ''|n} class="repeatable-form" ${'data-prepend="true"' if widget.prepend else ''} data-append-target=".${widget.appendTarget}" data-prefix="${prefix}">
     %if widget.prepend:
         <div class="add-more">
             <a class="link add-more-link">${widget.add_more_link_label|n}</a>
