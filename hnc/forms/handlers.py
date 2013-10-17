@@ -33,7 +33,12 @@ class BaseHandler(object):
             result = getattr(self, 'ajax{}'.format(request.method))(self.context, self.request)
             return render_to_response("json", result, self.request)
         else:
-            return getattr(self, request.method)(self.context, self.request)
+            try:
+                method = getattr(self, request.method)
+            except AttributeError, e:
+                raise HTTPNotFound()
+            else:
+                return method(self.context, self.request)
 
     def GET(self, context, request):
         return {}

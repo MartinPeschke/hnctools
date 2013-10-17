@@ -9,9 +9,6 @@ from . import Mapping
 
 log = logging.getLogger(__name__)
 
-
-
-
 class DBNotification(Exception):
     def __init__(self, message, result = None):
         self.message = message
@@ -26,12 +23,6 @@ class DateAwareEncoder(simplejson.JSONEncoder):
         if isinstance(obj, (date, datetime)):
             return obj.strftime("%Y-%m-%d")
         return simplejson.JSONEncoder.default(self, obj)
-
-
-
-
-
-
 
 
 class RemoteProc(object):
@@ -127,3 +118,5 @@ class VersionedBackend(Backend):
     return "{}/{}{}".format(self.location, self.version, path)
   def get_full_path(self, path):
     return "/api/{}{}".format(self.version, path) # in template javascript, this needs to get past reverse proxy and it is configured to reroute /api/
+
+
