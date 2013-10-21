@@ -29,7 +29,7 @@ class StaticContentLoader(object):
         self.cache.refresh(request)
 
     def __call__(self, key, **kwargs):
-        return self.content.get(key, key)
+        return self.content.get(key, key) or ''
 
     def pluralize(self, singular, plural, num):
         return singular.format(num=num) if num == 1 else plural.format(num=num)
@@ -65,7 +65,7 @@ CONTENT_FIELDS = [
         ]
 
 
-def ContentCreationViewFactory(SetStaticContentProc):
+def ContentCreationViewFactory(SetStaticContentProc, fwd_url):
 
     class ContentCreateForm(BaseForm):
         label = "Create Content"
@@ -86,10 +86,13 @@ def ContentCreationViewFactory(SetStaticContentProc):
             request._.refresh(request)
 
             request.session.flash(GenericSuccessMessage("Content created successfully!"), "generic_messages")
-            return {'success':True, 'redirect': request.resource_url(request.context)}
+            return {'success':True, 'redirect': fwd_url(request)}
 
 
     class ContentCreateHandler(FormHandler):
+        def __call__(self):
+            return super(ContentCreateHandler, self).__call__()
+
         form = ContentCreateForm
         def pre_fill_values(self, request, result):
             if 'key' in request.GET:
@@ -99,7 +102,7 @@ def ContentCreationViewFactory(SetStaticContentProc):
     return ContentCreateHandler
 
 
-def ContentEditViewFactory(SetStaticContentProc):
+def ContentEditViewFactory(SetStaticContentProc, fwd_url):
     class ContentEditForm(BaseForm):
         label = "Edit Content"
         grid = GRID_BS3
@@ -111,13 +114,13 @@ def ContentEditViewFactory(SetStaticContentProc):
         @classmethod
         def on_success(cls, request, values):
             data = request.context.contentsMap
-            data[request.context.__name__] = values['value']
+            data[request.context.content.key] = values['value']
 
             contents = SetStaticContentProc(request, {'Static':[{'key':k, 'value':v} for k,v in data.items()]})
             request._.refresh(request)
 
             request.session.flash(GenericSuccessMessage("Content updated successfully!"), "generic_messages")
-            return {'success':True, 'redirect': request.resource_url(request.context.__parent__)}
+            return {'success':True, 'redirect': fwd_url(request)}
 
     class ContentEditHandler(FormHandler):
         form = ContentEditForm
@@ -127,16 +130,16 @@ def ContentEditViewFactory(SetStaticContentProc):
     return ContentEditHandler
 
 
-def delete_view_factory(SetStaticContentProc):
+def delete_view_factory(SetStaticContentProc, fwd_url):
     def delete_view_inner(context, request):
         data = request.context.contentsMap
-        data.pop(request.context.__name__, None)
+        data.pop(request.context.content.key, None)
 
         contents = SetStaticContentProc(request, {'Static':[{'key':k, 'value':v} for k,v in data.items()]})
         request._.refresh(request)
 
         request.session.flash(GenericSuccessMessage("Content updated successfully!"), "generic_messages")
-        request.fwd_raw(request.resource_url(request.context.__parent__))
+        request.fwd_raw(fwd_url(request))
     return delete_view_inner
 
 
