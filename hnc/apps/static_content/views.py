@@ -29,11 +29,10 @@ class StaticContentLoader(object):
         self.cache.refresh(request)
 
     def __call__(self, key, **kwargs):
-        result = self.content.get(key, key)
-        if isinstance(result, basestring):
-            return result.format(**kwargs)
-        return result or ''
+        return self.content.get(key, key)
 
+    def pluralize(self, singular, plural, num):
+        return singular.format(num=num) if num == 1 else plural.format(num=num)
 
 
 def add_content(dictionary_factory, instance_name):
@@ -44,6 +43,8 @@ def add_content(dictionary_factory, instance_name):
     def add_content_impl(event):
         request = event.request
         request._ = StaticContentLoader(request, cache, request.globals.is_debug)
+        request.pluralize = request._.pluralize
+
     return add_content_impl
 
 
