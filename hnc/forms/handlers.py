@@ -2,8 +2,7 @@ from collections import OrderedDict
 import formencode
 from formencode.validators import Invalid
 from formencode.variabledecode import variable_decode
-from paste.httpexceptions import HTTPNotImplemented
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotImplemented, HTTPNotFound
 from pyramid.renderers import render_to_response
 
 from hnc.forms.messages import GenericErrorMessage, GenericSuccessMessage
