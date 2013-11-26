@@ -1,5 +1,5 @@
 <%namespace name="lib" file="lib.html"/>
-<div class="${grid.control_group_classes} ${widget.group_classes} ${widget.attrs.getGroupClasses()} ${'has-error' if error else ''}" ${widget.attrs.getGroupAttrs()|n}>
+<div class="${grid.control_group_classes} ${widget.group_classes} ${widget.attrs.getGroupClasses()} ${'has-error' if error else ''}" ${widget.attrs.getGroupAttrs(request)|n}>
     ${self.label(widget, grid)}
     <div class="${widget.control_classes} ${grid.controls_classes}">
         <%block name="controls">

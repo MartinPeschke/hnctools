@@ -1,5 +1,6 @@
 from datetime import datetime
 from operator import methodcaller, attrgetter
+from xml.sax.saxutils import quoteattr
 import formencode
 from formencode.validators import OneOf
 from hnc.forms.validators import TypeAheadValidator, DateValidator
@@ -25,17 +26,23 @@ HORIZONTAL_GRID_BS3 = GridClasses('form-validated form-horizontal', 'form-group'
 def normalize_key(k):
     return k.replace("_", "-")
 
-def attrsStringify(attrs, keyMod = None, valMod = None):
-    return ' '.join(['{}="{}"'.format(k, v) for k,v in attrs])
 
+def attrsStringify(data):
+    if isinstance(data, basestring):
+        return data
+    elif isinstance(data, dict):
+        return ' '.join(['{}={}'.format(k, quoteattr(unicode(v))) for k,v in data.items()])
+    else:
+        return ' '.join(['{}={}'.format(k, quoteattr(unicode(v))) for k,v in data])
 
 
 class HtmlAttrs(object):
     classes = ''
-    def __init__(self, required = False, important = False, placeholder = '', **attrs):
+    def __init__(self, required = False, important = False, placeholder = '', group_attrs = None, **attrs):
         self.required = required
         self.important = important
         self.attrs = attrs
+        self.group_attrs = group_attrs
         if placeholder:
             self.attrs['placeholder'] = placeholder
 
@@ -45,10 +52,14 @@ class HtmlAttrs(object):
         if self.important: classes += ' important'
         return classes
     def getInputAttrs(self, request):
+        if not self.attrs: return ''
         _ = request._
         return attrsStringify([(normalize_key(k), _(v)) for k,v in self.attrs.items()])
+    def getGroupAttrs(self, request):
+        if not self.group_attrs: return ''
+        _ = request._
+        return attrsStringify([(normalize_key(k), _(v)) for k,v in self.group_attrs.items()])
 
-    def getGroupAttrs(self): return ''
     getGroupClasses = getClasses
 
 NONE = HtmlAttrs()
@@ -74,7 +85,7 @@ class DependentAttrs(HtmlAttrs):
 
 
     def getGroupClasses(self): return '{} dependent-control'.format(self.getClasses())
-    def getGroupAttrs(self):
+    def getGroupAttrs(self, request):
         return 'data-dependency="{}" data-dependency-value="{}"'.format(self.dependency, self.dependencyValue)
 
 class PictureUploadAttrs(HtmlAttrs):
@@ -87,7 +98,7 @@ class PictureUploadAttrs(HtmlAttrs):
 
     def getClasses(self): return ''
     def getGroupClasses(self): return 'file-upload-control'
-    def getGroupAttrs(self):
+    def getGroupAttrs(self, request):
         return 'data-upload-single="{}" data-file-types="{}"'.format(self.singleFile, self.types)
 
 
